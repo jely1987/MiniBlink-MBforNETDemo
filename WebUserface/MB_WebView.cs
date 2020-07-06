@@ -9,6 +9,7 @@ using System.IO;
 using System.Collections;
 using System.Reflection;
 using System.Dynamic;
+using System.Net;
 
 namespace MB
 {
@@ -18,10 +19,10 @@ namespace MB
         private IntPtr m_OldProc;
         private wkePaintUpdatedCallback m_wkePaintUpdatedCallback;
         private WndProcCallback m_WndProcCallback;
-        private bool m_noDestory;
         private bool m_bMouseEnabled;
 
-        #region 事件
+        #region 设置回调事件
+
         private wkeTitleChangedCallback m_wkeTitleChangedCallback;
         private wkeMouseOverUrlChangedCallback m_wkeMouseOverUrlChangedCallback;
         private wkeURLChangedCallback2 m_wkeURLChangedCallback2;
@@ -33,6 +34,7 @@ namespace MB
         private wkeDocumentReady2Callback m_wkeDocumentReadyCallback;
         private wkeLoadingFinishCallback m_wkeLoadingFinishCallback;
         private wkeDownloadCallback m_wkeDownloadCallback;
+        private wkeDownload2Callback m_wkeDownloadCallback2;
         private wkeConsoleCallback m_wkeConsoleCallback;
         private wkeLoadUrlBeginCallback m_wkeLoadUrlBeginCallback;
         private wkeLoadUrlEndCallback m_wkeLoadUrlEndCallback;
@@ -53,6 +55,7 @@ namespace MB
         private event EventHandler<DocumentReadyEventArgs> m_documentReadyHandler = null;
         private event EventHandler<LoadingFinishEventArgs> m_loadingFinishHandler = null;
         private event EventHandler<DownloadEventArgs> m_downloadHandler = null;
+        private event EventHandler<DownloadEventArgs2> m_downloadHandler2 = null;
         private event EventHandler<ConsoleEventArgs> m_consoleHandler = null;
         private event EventHandler<LoadUrlBeginEventArgs> m_loadUrlBeginHandler = null;
         private event EventHandler<LoadUrlEndEventArgs> m_loadUrlEndHandler = null;
@@ -61,6 +64,161 @@ namespace MB
         private event EventHandler<NetResponseEventArgs> m_netResponseHandler = null;
         private event EventHandler<WillMediaLoadEventArgs> m_willMediaLoadHandler = null;
         private event EventHandler<OtherLoadEventArgs> m_OtherLoadHandler = null;
+
+        private void SetCallback()
+        {
+            m_wkeTitleChangedCallback = new wkeTitleChangedCallback((IntPtr WebView, IntPtr param, IntPtr title) =>
+            {
+                m_titleChangeHandler?.Invoke(this, new TitleChangeEventArgs(WebView, title));
+
+            });
+
+            m_wkeMouseOverUrlChangedCallback = new wkeMouseOverUrlChangedCallback((IntPtr WebView, IntPtr param, IntPtr url) =>
+            {
+                m_titleChangeHandler?.Invoke(this, new TitleChangeEventArgs(WebView, url));
+
+            });
+
+            m_wkeURLChangedCallback2 = new wkeURLChangedCallback2((IntPtr WebView, IntPtr param, IntPtr frame, IntPtr url) =>
+            {
+                m_urlChangeHandler?.Invoke(this, new UrlChangeEventArgs(WebView, url, frame));
+
+            });
+
+            m_wkeAlertBoxCallback = new wkeAlertBoxCallback((IntPtr WebView, IntPtr param, IntPtr msg) =>
+            {
+                m_alertBoxHandler?.Invoke(this, new AlertBoxEventArgs(WebView, msg));
+            });
+
+            m_wkeConfirmBoxCallback = new wkeConfirmBoxCallback((IntPtr WebView, IntPtr param, IntPtr msg) =>
+            {
+                if (m_confirmBoxHandler != null)
+                {
+                    ConfirmBoxEventArgs e = new ConfirmBoxEventArgs(WebView, msg);
+                    m_confirmBoxHandler(this, e);
+                    return Convert.ToByte(e.Result);
+                }
+                return 0;
+            });
+
+            m_wkePromptBoxCallback = new wkePromptBoxCallback((IntPtr webView, IntPtr param, IntPtr msg, IntPtr defaultResult, IntPtr result) =>
+            {
+                if (m_promptBoxHandler != null)
+                {
+                    PromptBoxEventArgs e = new PromptBoxEventArgs(webView, msg, defaultResult, result);
+                    m_promptBoxHandler(this, e);
+                    return Convert.ToByte(e.Result);
+                }
+                return 0;
+            });
+
+            m_wkeNavigationCallback = new wkeNavigationCallback((IntPtr webView, IntPtr param, wkeNavigationType navigationType, IntPtr url) =>
+            {
+                if (m_navigateHandler != null)
+                {
+                    NavigateEventArgs e = new NavigateEventArgs(webView, navigationType, url);
+                    m_navigateHandler(this, e);
+
+                    return (byte)(e.Cancel ? 0 : 1);
+                }
+                return 1;
+            });
+
+            m_wkeCreateViewCallback = new wkeCreateViewCallback((IntPtr webView, IntPtr param, wkeNavigationType navigationType, IntPtr url, IntPtr windowFeatures) =>
+            {
+                if (m_createViewHandler != null)
+                {
+                    CreateViewEventArgs e = new CreateViewEventArgs(webView, navigationType, url, windowFeatures);
+                    m_createViewHandler(this, e);
+
+                    return e.NewWebViewHandle;
+                }
+                return webView;
+            });
+
+            m_wkeDocumentReadyCallback = new wkeDocumentReady2Callback((IntPtr webView, IntPtr param, IntPtr frame) =>
+            {
+                m_documentReadyHandler?.Invoke(this, new DocumentReadyEventArgs(webView, frame));
+            });
+
+            m_wkeLoadingFinishCallback = new wkeLoadingFinishCallback((IntPtr webView, IntPtr param, IntPtr url, wkeLoadingResult result, IntPtr failedReason) =>
+            {
+                m_loadingFinishHandler?.Invoke(this, new LoadingFinishEventArgs(webView, url, result, failedReason));
+            });
+
+            m_wkeDownloadCallback = new wkeDownloadCallback((IntPtr webView, IntPtr param, IntPtr url) =>
+            {
+                if (m_downloadHandler != null)
+                {
+                    DownloadEventArgs e = new DownloadEventArgs(webView, url);
+                    m_downloadHandler(this, e);
+                    return (byte)(e.Cancel ? 1 : 0);
+                }
+                return 1;
+            });
+
+            m_wkeDownloadCallback2 = new wkeDownload2Callback((IntPtr webView, IntPtr param, uint expectedContentLength, IntPtr url, IntPtr mime, IntPtr disposition, IntPtr job, IntPtr dataBind) =>
+            {
+                if (m_downloadHandler2 != null)
+                {
+                    DownloadEventArgs2 e = new DownloadEventArgs2(webView, param, expectedContentLength, url, mime, disposition, job, dataBind);
+                    m_downloadHandler2(this, e);
+                    return (byte)(e.Cancel ? 1 : 0);
+                }
+                return 1;
+            });
+
+            m_wkeConsoleCallback = new wkeConsoleCallback((IntPtr webView, IntPtr param, wkeConsoleLevel level, IntPtr message, IntPtr sourceName, uint sourceLine, IntPtr stackTrace) =>
+            {
+                m_consoleHandler?.Invoke(this, new ConsoleEventArgs(webView, level, message, sourceName, sourceLine, stackTrace));
+            });
+
+            m_wkeLoadUrlBeginCallback = new wkeLoadUrlBeginCallback((IntPtr webView, IntPtr param, IntPtr url, IntPtr job) =>
+            {
+                if (m_loadUrlBeginHandler != null)
+                {
+                    LoadUrlBeginEventArgs e = new LoadUrlBeginEventArgs(webView, url, job);
+                    m_loadUrlBeginHandler(this, e);
+                    return (byte)(e.Cancel ? 1 : 0);
+                }
+                return 0;
+            });
+
+            m_wkeLoadUrlEndCallback = new wkeLoadUrlEndCallback((IntPtr webView, IntPtr param, IntPtr url, IntPtr job, IntPtr buf, int len) =>
+            {
+                m_loadUrlEndHandler?.Invoke(this, new LoadUrlEndEventArgs(webView, url, job, buf, len));
+            });
+
+            m_wkeDidCreateScriptContextCallback = new wkeDidCreateScriptContextCallback((IntPtr webView, IntPtr param, IntPtr frame, IntPtr context, int extensionGroup, int worldId) =>
+            {
+                m_didCreateScriptContextHandler?.Invoke(this, new DidCreateScriptContextEventArgs(webView, frame, context, extensionGroup, worldId));
+            });
+
+            m_wkeWillReleaseScriptContextCallback = new wkeWillReleaseScriptContextCallback((IntPtr webView, IntPtr param, IntPtr frame, IntPtr context, int worldId) =>
+            {
+                m_willReleaseScriptContextHandler?.Invoke(this, new WillReleaseScriptContextEventArgs(webView, frame, context, worldId));
+            });
+
+            m_wkeNetResponseCallback = new wkeNetResponseCallback((IntPtr WebView, IntPtr param, IntPtr url, IntPtr job) => {
+                if (m_netResponseHandler != null)
+                {
+                    NetResponseEventArgs e = new NetResponseEventArgs(WebView, url, job);
+                    m_netResponseHandler(this, e);
+                    return (byte)(e.Cancel ? 1 : 0);
+                }
+                return 0;
+            });
+
+            m_wkeWillMediaLoadCallback = new wkeWillMediaLoadCallback((IntPtr webView, IntPtr param, IntPtr url, IntPtr info) =>
+            {
+                m_willMediaLoadHandler?.Invoke(this, new WillMediaLoadEventArgs(webView, url, info));
+            });
+
+            m_wkeOnOtherLoadCallback = new wkeOnOtherLoadCallback((IntPtr webView, IntPtr param, wkeOtherLoadType type, IntPtr info) =>
+            {
+                m_OtherLoadHandler?.Invoke(this, new OtherLoadEventArgs(webView, type, info));
+            });
+        }
 
         /// <summary>
         /// 窗口过程事件
@@ -320,6 +478,26 @@ namespace MB
             }
         }
 
+        public event EventHandler<DownloadEventArgs2> OnDownload2
+        {
+            add
+            {
+                if (m_downloadHandler2 == null)
+                {
+                    MBApi.wkeOnDownload2(Handle, m_wkeDownloadCallback2, IntPtr.Zero);
+                }
+                m_downloadHandler2 += value;
+            }
+            remove
+            {
+                m_downloadHandler2 -= value;
+                if (m_downloadHandler2 == null)
+                {
+                    MBApi.wkeOnDownload2(Handle, null, IntPtr.Zero);
+                }
+            }
+        }
+
         /// <summary>
         /// 控制台
         /// </summary>
@@ -504,176 +682,6 @@ namespace MB
             }
         }
 
-        private void SetEventCallBack()
-        {
-            m_wkeNetResponseCallback = new wkeNetResponseCallback((IntPtr WebView, IntPtr param, IntPtr url, IntPtr job) => {
-                if (m_netResponseHandler != null)
-                {
-                    NetResponseEventArgs e = new NetResponseEventArgs(WebView, url, job);
-                    m_netResponseHandler(this, e);
-                    if (e.Cancel)
-                        return 1;
-                }
-                return 0;
-            });
-
-            m_wkeTitleChangedCallback = new wkeTitleChangedCallback((IntPtr WebView, IntPtr param, IntPtr title) =>
-            {
-                m_titleChangeHandler?.Invoke(this, new TitleChangeEventArgs(WebView, title));
-
-            });
-
-            m_wkeMouseOverUrlChangedCallback = new wkeMouseOverUrlChangedCallback((IntPtr WebView, IntPtr param, IntPtr url) =>
-            {
-                m_titleChangeHandler?.Invoke(this, new TitleChangeEventArgs(WebView, url));
-
-            });
-
-
-            m_wkeURLChangedCallback2 = new wkeURLChangedCallback2((IntPtr WebView, IntPtr param, IntPtr frame, IntPtr url) =>
-            {
-                m_urlChangeHandler?.Invoke(this, new UrlChangeEventArgs(WebView, url, frame));
-
-            });
-
-            m_wkeAlertBoxCallback = new wkeAlertBoxCallback((IntPtr WebView, IntPtr param, IntPtr msg) =>
-            {
-                m_alertBoxHandler?.Invoke(this, new AlertBoxEventArgs(WebView, msg));
-            });
-
-            m_wkeConfirmBoxCallback = new wkeConfirmBoxCallback((IntPtr WebView, IntPtr param, IntPtr msg) =>
-            {
-                if (m_confirmBoxHandler != null)
-                {
-                    ConfirmBoxEventArgs e = new ConfirmBoxEventArgs(WebView, msg);
-                    m_confirmBoxHandler(this, e);
-                    return Convert.ToByte(e.Result);
-                }
-                return 0;
-            });
-
-            m_wkePromptBoxCallback = new wkePromptBoxCallback((IntPtr webView, IntPtr param, IntPtr msg, IntPtr defaultResult, IntPtr result) =>
-            {
-                if (m_promptBoxHandler != null)
-                {
-                    PromptBoxEventArgs e = new PromptBoxEventArgs(webView, msg, defaultResult, result);
-                    m_promptBoxHandler(this, e);
-                    return Convert.ToByte(e.Result);
-                }
-                return 0;
-            });
-
-            m_wkeNavigationCallback = new wkeNavigationCallback((IntPtr webView, IntPtr param, wkeNavigationType navigationType, IntPtr url) =>
-            {
-                if (m_navigateHandler != null)
-                {
-                    NavigateEventArgs e = new NavigateEventArgs(webView, navigationType, url);
-                    m_navigateHandler(this, e);
-
-                    return (byte)(e.Cancel ? 0 : 1);
-                }
-                return 1;
-            });
-
-            m_wkeCreateViewCallback = new wkeCreateViewCallback((IntPtr webView, IntPtr param, wkeNavigationType navigationType, IntPtr url, IntPtr windowFeatures) =>
-            {
-                if (m_createViewHandler != null)
-                {
-                    CreateViewEventArgs e = new CreateViewEventArgs(webView, navigationType, url, windowFeatures);
-                    m_createViewHandler(this, e);
-
-                    return e.NewWebViewHandle;
-                }
-                return webView;
-            });
-
-
-            m_wkeDocumentReadyCallback = new wkeDocumentReady2Callback((IntPtr webView, IntPtr param, IntPtr frame) =>
-            {
-                m_documentReadyHandler?.Invoke(this, new DocumentReadyEventArgs(webView, frame));
-            });
-
-            m_wkeLoadingFinishCallback = new wkeLoadingFinishCallback((IntPtr webView, IntPtr param, IntPtr url, wkeLoadingResult result, IntPtr failedReason) =>
-            {
-                m_loadingFinishHandler?.Invoke(this, new LoadingFinishEventArgs(webView, url, result, failedReason));
-            });
-
-            m_wkeDownloadCallback = new wkeDownloadCallback((IntPtr webView, IntPtr param, IntPtr url) =>
-            {
-                if (m_downloadHandler != null)
-                {
-                    DownloadEventArgs e = new DownloadEventArgs(webView, url);
-                    m_downloadHandler(this, e);
-
-                    return (byte)(e.Cancel ? 0 : 1);
-                }
-                return 1;
-            });
-
-            m_wkeConsoleCallback = new wkeConsoleCallback((IntPtr webView, IntPtr param, wkeConsoleLevel level, IntPtr message, IntPtr sourceName, uint sourceLine, IntPtr stackTrace) =>
-            {
-                m_consoleHandler?.Invoke(this, new ConsoleEventArgs(webView, level, message, sourceName, sourceLine, stackTrace));
-            });
-
-            m_wkeLoadUrlBeginCallback = new wkeLoadUrlBeginCallback((IntPtr webView, IntPtr param, IntPtr url, IntPtr job) =>
-            {
-                if (m_loadUrlBeginHandler != null)
-                {
-                    LoadUrlBeginEventArgs e = new LoadUrlBeginEventArgs(webView, url, job);
-                    m_loadUrlBeginHandler(this, e);
-
-                    return (byte)(e.Cancel ? 1 : 0);
-                }
-                return 0;
-            });
-
-            m_wkeLoadUrlEndCallback = new wkeLoadUrlEndCallback((IntPtr webView, IntPtr param, IntPtr url, IntPtr job, IntPtr buf, int len) =>
-            {
-                if (m_loadUrlEndHandler != null)
-                {
-                    LoadUrlEndEventArgs e = new LoadUrlEndEventArgs(webView, url, job, buf, len);
-                    m_loadUrlEndHandler(this, e);
-                }
-            });
-
-            m_wkeDidCreateScriptContextCallback = new wkeDidCreateScriptContextCallback((IntPtr webView, IntPtr param, IntPtr frame, IntPtr context, int extensionGroup, int worldId) =>
-            {
-                if (m_didCreateScriptContextHandler != null)
-                {
-                    DidCreateScriptContextEventArgs e = new DidCreateScriptContextEventArgs(webView, frame, context, extensionGroup, worldId);
-                    m_didCreateScriptContextHandler(this, e);
-                }
-            });
-
-            m_wkeWillReleaseScriptContextCallback = new wkeWillReleaseScriptContextCallback((IntPtr webView, IntPtr param, IntPtr frame, IntPtr context, int worldId) =>
-            {
-                if (m_willReleaseScriptContextHandler != null)
-                {
-                    WillReleaseScriptContextEventArgs e = new WillReleaseScriptContextEventArgs(webView, frame, context, worldId);
-                    m_willReleaseScriptContextHandler(this, e);
-                }
-            });
-
-            m_wkeWillMediaLoadCallback = new wkeWillMediaLoadCallback((IntPtr webView, IntPtr param, IntPtr url, IntPtr info) =>
-            {
-                if (m_willMediaLoadHandler != null)
-                {
-                    WillMediaLoadEventArgs e = new WillMediaLoadEventArgs(webView, url, info);
-                    m_willMediaLoadHandler(this, e);
-                }
-            });
-
-            m_wkeOnOtherLoadCallback = new wkeOnOtherLoadCallback((IntPtr webView, IntPtr param, wkeOtherLoadType type, IntPtr info) =>
-            {
-                if (m_OtherLoadHandler != null)
-                {
-                    OtherLoadEventArgs e = new OtherLoadEventArgs(webView, type, info);
-                    m_OtherLoadHandler(this, e);
-                }
-            });
-
-        }
-
         #endregion
 
         /// <summary>
@@ -687,7 +695,7 @@ namespace MB
             }
             m_wkePaintUpdatedCallback = new wkePaintUpdatedCallback(wkeOnPaintUpdated);
             m_WndProcCallback = new WndProcCallback(OnWndProc);
-            SetEventCallBack();
+            SetCallback();
             Handle = MBApi.wkeCreateWebView();
         }
 
@@ -704,24 +712,8 @@ namespace MB
             }
             m_wkePaintUpdatedCallback = new wkePaintUpdatedCallback(wkeOnPaintUpdated);
             m_WndProcCallback = new WndProcCallback(OnWndProc);
-            SetEventCallBack();
+            SetCallback();
             Bind(window, isTransparent);
-        }
-
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        public WebView(IntPtr wkeWebView)
-        {
-            if (MBApi.wkeIsInitialize() == 0)
-            {
-                MBApi.wkeInitialize();
-            }
-            m_wkePaintUpdatedCallback = new wkePaintUpdatedCallback(wkeOnPaintUpdated);
-            m_WndProcCallback = new WndProcCallback(OnWndProc);
-            SetEventCallBack();
-            Handle = wkeWebView;
-            m_noDestory = true;
         }
 
         /// <summary>
@@ -736,14 +728,11 @@ namespace MB
                     MB_Common.SetWindowLong(m_hWnd, (int)WinConst.GWL_WNDPROC, m_OldProc.ToInt32());
                     m_OldProc = IntPtr.Zero;
                 }
-                if (!m_noDestory)
-                {
-                    MBApi.wkeSetHandle(Handle, IntPtr.Zero);
-                    MBApi.wkeDestroyWebView(Handle);
-                }
+
+                MBApi.wkeSetHandle(Handle, IntPtr.Zero);
+                MBApi.wkeDestroyWebView(Handle);
                 Handle = IntPtr.Zero;
                 m_hWnd = IntPtr.Zero;
-                m_noDestory = false;
             }
         }
 
@@ -2552,18 +2541,7 @@ namespace MB
 
         public string URL
         {
-            get
-            {
-                if (m_url != IntPtr.Zero)
-                {
-                    IntPtr pTitle = MBApi.wkeGetStringW(m_url);
-                    if (pTitle != IntPtr.Zero)
-                    {
-                        return Marshal.PtrToStringUni(pTitle);
-                    }
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_url).UnicodePtrToStr(); }
         }
     }
 
@@ -2581,18 +2559,7 @@ namespace MB
 
         public string Title
         {
-            get
-            {
-                if (m_title != IntPtr.Zero)
-                {
-                    IntPtr pTitle = MBApi.wkeGetStringW(m_title);
-                    if (pTitle != IntPtr.Zero)
-                    {
-                        return Marshal.PtrToStringUni(pTitle);
-                    }
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_title).UnicodePtrToStr(); }
         }
     }
 
@@ -2611,18 +2578,7 @@ namespace MB
 
         public string URL
         {
-            get
-            {
-                if (m_url != IntPtr.Zero)
-                {
-                    IntPtr pUrl = MBApi.wkeGetStringW(m_url);
-                    if (pUrl != IntPtr.Zero)
-                    {
-                        return Marshal.PtrToStringUni(pUrl);
-                    }
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_url).UnicodePtrToStr(); }
         }
 
         public IntPtr WebFrame { get; }
@@ -2642,18 +2598,7 @@ namespace MB
 
         public string Msg
         {
-            get
-            {
-                if (m_msg != IntPtr.Zero)
-                {
-                    IntPtr pMsg = MBApi.wkeGetStringW(m_msg);
-                    if (pMsg != IntPtr.Zero)
-                    {
-                        return Marshal.PtrToStringUni(pMsg);
-                    }
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_msg).UnicodePtrToStr(); }
         }
     }
 
@@ -2669,20 +2614,10 @@ namespace MB
         {
             m_msg = msg;
         }
+
         public string Msg
         {
-            get
-            {
-                if (m_msg != IntPtr.Zero)
-                {
-                    IntPtr pMsg = MBApi.wkeGetStringW(m_msg);
-                    if (pMsg != IntPtr.Zero)
-                    {
-                        return Marshal.PtrToStringUni(pMsg);
-                    }
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_msg).UnicodePtrToStr(); }
         }
     }
 
@@ -2702,46 +2637,21 @@ namespace MB
             m_resultStr = result;
         }
 
+        public bool Result { get; set; }
+
         public string Msg
         {
-            get
-            {
-                if (m_msg != IntPtr.Zero)
-                {
-                    IntPtr pMsg = MBApi.wkeGetStringW(m_msg);
-                    if (pMsg != IntPtr.Zero)
-                    {
-                        return Marshal.PtrToStringUni(pMsg);
-                    }
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_msg).UnicodePtrToStr(); }
         }
-
-        public bool Result { get; set; }
 
         public string DefaultResultString
         {
-            get
-            {
-                if (m_defaultStr != IntPtr.Zero)
-                {
-                    IntPtr pStr = MBApi.wkeGetStringW(m_defaultStr);
-                    return Marshal.PtrToStringUni(pStr);
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_defaultStr).UnicodePtrToStr(); }
         }
 
         public string ResultString
         {
-            set
-            {
-                if (m_resultStr != IntPtr.Zero)
-                {
-                    MBApi.wkeSetStringW(m_resultStr, value, value.Length);
-                }
-            }
+            set { MBApi.wkeSetStringW(m_resultStr, value, value.Length); }
         }
     }
 
@@ -2759,20 +2669,13 @@ namespace MB
         }
 
         public wkeNavigationType NavigationType { get; }
+        
+        public bool Cancel { get; set; }
 
         public string URL
         {
-            get
-            {
-                if (m_url != IntPtr.Zero)
-                {
-                    return Marshal.PtrToStringUni(MBApi.wkeGetStringW(m_url));
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_url).UnicodePtrToStr(); }
         }
-
-        public bool Cancel { get; set; }
     }
 
     /// <summary>
@@ -2793,34 +2696,17 @@ namespace MB
 
         public wkeNavigationType NavigationType { get; }
 
+        public IntPtr NewWebViewHandle { get; set; }
+
         public string URL
         {
-            get
-            {
-                if (m_url != IntPtr.Zero)
-                {
-                    return Marshal.PtrToStringUni(MBApi.wkeGetStringW(m_url));
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_url).UnicodePtrToStr(); }
         }
 
         public wkeWindowFeatures WindowFeatures
         {
-            get
-            {
-                if (m_windowFeatures != IntPtr.Zero)
-                {
-                    return (wkeWindowFeatures)Marshal.PtrToStructure(m_windowFeatures, typeof(wkeWindowFeatures));
-                }
-                else
-                {
-                    return new wkeWindowFeatures();
-                }
-            }
+            get { return (wkeWindowFeatures)m_windowFeatures.UTF8PtrToStruct(typeof(wkeWindowFeatures)); }
         }
-
-        public IntPtr NewWebViewHandle { get; set; }
     }
 
     /// <summary>
@@ -2851,30 +2737,16 @@ namespace MB
             m_failedReason = failedReason;
         }
 
+        public wkeLoadingResult LoadingResult { get; }
+
         public string URL
         {
-            get
-            {
-                if (m_url != IntPtr.Zero)
-                {
-                    return Marshal.PtrToStringUni(MBApi.wkeGetStringW(m_url));
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_url).UnicodePtrToStr(); }
         }
-
-        public wkeLoadingResult LoadingResult { get; }
 
         public string FailedReason
         {
-            get
-            {
-                if (m_failedReason != IntPtr.Zero)
-                {
-                    return Marshal.PtrToStringUni(MBApi.wkeGetStringW(m_failedReason));
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_failedReason).UnicodePtrToStr(); }
         }
     }
 
@@ -2884,24 +2756,120 @@ namespace MB
     public class DownloadEventArgs : MiniblinkEventArgs
     {
         private IntPtr m_url;
-        public bool Cancel { get; set; }
 
         public DownloadEventArgs(IntPtr webView, IntPtr url) : base(webView)
         {
             m_url = url;
         }
 
+        public string SaveFilePath { get; set; }
+
+        public bool Cancel { get; set; }
+
+        public long ContentLength { get; set; }
+
         public string URL
         {
-            get
-            {
-                if (m_url != IntPtr.Zero)
-                {
-                    return m_url.UTF8PtrToStr();
-                }
-                return string.Empty;
-            }
+            get { return m_url.UTF8PtrToStr(); }
         }
+
+        public event EventHandler<DownloadProgressEventArgs> Progress;
+
+        public void OnProgress(DownloadProgressEventArgs e)
+        {
+            Progress?.Invoke(this, e);
+        }
+
+        public event EventHandler<DownloadFinishEventArgs> Finish;
+
+        public void OnFinish(DownloadFinishEventArgs e)
+        {
+            Finish?.Invoke(this, e);
+        }
+    }
+
+    /// <summary>
+    /// OnDownload2事件参数，貌似有问题，经常报“c#尝试读取或写入受保护的内存。这通常指示其他内存已损坏”
+    /// </summary>
+    public class DownloadEventArgs2 : MiniblinkEventArgs
+    {
+        private IntPtr m_url;
+        private IntPtr m_mime;
+        private IntPtr m_disposition;
+        private IntPtr m_dataBind;
+
+        public DownloadEventArgs2(IntPtr webView, IntPtr param, uint expectedContentLength, IntPtr url, IntPtr mime, IntPtr disposition, IntPtr job, IntPtr dataBind) : base(webView)
+        {
+            m_url = url;
+            m_mime = mime;
+            m_disposition = disposition;
+            m_dataBind = dataBind;
+
+            ContentLength = expectedContentLength;
+            Job = job;
+        }
+
+        public string SaveFilePath { get; set; }
+
+        public bool Cancel { get; set; }
+
+        public long ContentLength { get; set; }
+
+        public IntPtr Job { get; }
+
+        public string URL
+        {
+            get { return m_url.UTF8PtrToStr(); }
+        }
+
+        public string Mime
+        {
+            get { return m_mime.UTF8PtrToStr(); }
+        }
+
+        public string Disposition
+        {
+            get { return m_disposition.UTF8PtrToStr(); }
+        }
+
+        public string DataBind
+        {
+            get { return m_dataBind.UTF8PtrToStr(); }
+        }
+
+        public event EventHandler<DownloadProgressEventArgs> Progress;
+
+        public void OnProgress(DownloadProgressEventArgs e)
+        {
+            Progress?.Invoke(this, e);
+        }
+
+        public event EventHandler<DownloadFinishEventArgs> Finish;
+
+        public void OnFinish(DownloadFinishEventArgs e)
+        {
+            Finish?.Invoke(this, e);
+        }
+    }
+
+    /// <summary>
+    /// 下载过程事件参数
+    /// </summary>
+    public class DownloadProgressEventArgs : EventArgs
+    {
+        public long Total { get; set; }
+        public long Received { get; set; }
+        public byte[] Data { get; set; }
+        public bool Cancel { get; set; }
+    }
+
+    /// <summary>
+    /// 下载完成事件参数
+    /// </summary>
+    public class DownloadFinishEventArgs : EventArgs
+    {
+        public Exception Error { get; set; }
+        public bool IsCompleted { get; set; }
     }
 
     /// <summary>
@@ -2924,42 +2892,21 @@ namespace MB
 
         public wkeConsoleLevel Level { get; }
 
+        public uint SourceLine { get; }
+
         public string Message
         {
-            get
-            {
-                if (m_message != IntPtr.Zero)
-                {
-                    return Marshal.PtrToStringUni(MBApi.wkeGetStringW(m_message));
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_message).UTF8PtrToStr(); }
         }
 
         public string SourceName
         {
-            get
-            {
-                if (m_sourceName != IntPtr.Zero)
-                {
-                    return Marshal.PtrToStringUni(MBApi.wkeGetStringW(m_sourceName));
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_sourceName).UTF8PtrToStr(); }
         }
-
-        public uint SourceLine { get; }
 
         public string StackTrace
         {
-            get
-            {
-                if (m_stackTrace != IntPtr.Zero)
-                {
-                    return Marshal.PtrToStringUni(MBApi.wkeGetStringW(m_stackTrace));
-                }
-                return string.Empty;
-            }
+            get { return MBApi.wkeGetStringW(m_stackTrace).UTF8PtrToStr(); }
         }
     }
 
@@ -2978,14 +2925,7 @@ namespace MB
 
         public string URL
         {
-            get
-            {
-                if (m_url != IntPtr.Zero)
-                {
-                    return m_url.UTF8PtrToStr();
-                }
-                return string.Empty;
-            }
+            get { return m_url.UTF8PtrToStr(); }
         }
 
         public IntPtr Job { get; }
@@ -2999,43 +2939,27 @@ namespace MB
     {
         private IntPtr m_url;
         private IntPtr m_buf;
-        private int m_len;
 
         public LoadUrlEndEventArgs(IntPtr webView, IntPtr url, IntPtr job, IntPtr buf, int len) : base(webView)
         {
             m_url = url;
             Job = job;
             m_buf = buf;
-            m_len = len;
-        }
-
-        public string URL
-        {
-            get
-            {
-                if (m_url != IntPtr.Zero)
-                {
-                    return m_url.UTF8PtrToStr();
-                }
-                return string.Empty;
-            }
+            Len = len;
         }
 
         public IntPtr Job { get; }
 
+        public int Len { get; }
+
+        public string URL
+        {
+            get { return m_url.UTF8PtrToStr(); }
+        }
+
         public byte[] Data
         {
-            get
-            {
-                if (m_buf != IntPtr.Zero)
-                {
-                    byte[] data = new byte[m_len];
-                    Marshal.Copy(m_buf, data, 0, m_len);
-
-                    return data;
-                }
-                return null;
-            }
+            get { return m_buf.StructToBytes(); }
         }
     }
 
@@ -3090,14 +3014,7 @@ namespace MB
 
         public string URL
         {
-            get
-            {
-                if (m_url != IntPtr.Zero)
-                {
-                    return m_url.UTF8PtrToStr();
-                }
-                return string.Empty;
-            }
+            get { return m_url.UTF8PtrToStr(); }
         }
 
         public IntPtr Job { get; }
@@ -3120,14 +3037,7 @@ namespace MB
 
         public string URL
         {
-            get
-            {
-                if (m_url != IntPtr.Zero)
-                {
-                    return m_url.UTF8PtrToStr();
-                }
-                return string.Empty;
-            }
+            get { return m_url.UTF8PtrToStr(); }
         }
 
         public wkeMediaLoadInfo Info
@@ -3168,53 +3078,25 @@ namespace MB
                 wkeWillSendRequestInfo srInfo = new wkeWillSendRequestInfo();
                 if (m_info.willSendRequestInfo != IntPtr.Zero)
                 {
-                    IntPtr strPtr;
                     srInfo.isHolded = Marshal.ReadInt32(m_info.willSendRequestInfo) != 0;
 
                     IntPtr ptr = Marshal.ReadIntPtr(m_info.willSendRequestInfo, 4);
-                    if (ptr != IntPtr.Zero)
-                    {
-                        strPtr = MBApi.wkeGetStringW(ptr);
-                        if (strPtr != IntPtr.Zero)
-                        {
-                            srInfo.url = Marshal.PtrToStringUni(strPtr);
-                        }
-                    }
+                    srInfo.url = MBApi.wkeGetStringW(ptr).UTF8PtrToStr();
 
                     ptr = Marshal.ReadIntPtr(m_info.willSendRequestInfo, 8);
-                    if (ptr != IntPtr.Zero)
-                    {
-                        strPtr = MBApi.wkeGetStringW(ptr);
-                        if (strPtr != IntPtr.Zero)
-                        {
-                            srInfo.newUrl = Marshal.PtrToStringUni(strPtr);
-                        }
-                    }
+                    srInfo.newUrl = MBApi.wkeGetStringW(ptr).UTF8PtrToStr();
 
                     srInfo.resourceType = (wkeResourceType)Marshal.ReadInt32(m_info.willSendRequestInfo, 12);
                     srInfo.httpResponseCode = Marshal.ReadInt32(m_info.willSendRequestInfo, 16);
                     ptr = Marshal.ReadIntPtr(m_info.willSendRequestInfo, 20);
-                    if (ptr != IntPtr.Zero)
-                    {
-                        strPtr = MBApi.wkeGetStringW(ptr);
-                        if (strPtr != IntPtr.Zero)
-                        {
-                            srInfo.method = Marshal.PtrToStringUni(strPtr);
-                        }
-                    }
+                    srInfo.method = MBApi.wkeGetStringW(ptr).UTF8PtrToStr();
 
                     ptr = Marshal.ReadIntPtr(m_info.willSendRequestInfo, 24);
-                    if (ptr != IntPtr.Zero)
-                    {
-                        strPtr = MBApi.wkeGetStringW(ptr);
-                        if (strPtr != IntPtr.Zero)
-                        {
-                            srInfo.referrer = Marshal.PtrToStringUni(strPtr);
-                        }
-                    }
+                    srInfo.referrer = MBApi.wkeGetStringW(ptr).UTF8PtrToStr();
 
                     srInfo.headers = Marshal.ReadIntPtr(m_info.willSendRequestInfo, 28);
                 }
+
                 return srInfo;
             }
         }

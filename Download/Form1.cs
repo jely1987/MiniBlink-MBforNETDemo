@@ -125,9 +125,8 @@ namespace Download
                         Invoke(new Action(() =>
                         {
                             label1.Text = "数据异常，下载失败";
+                            throw new Exception("数据异常，下载失败");
                         }));
-
-                        throw new Exception("数据异常，下载失败");
                     }
                 }
             }).ContinueWith((task) =>

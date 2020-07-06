@@ -97,6 +97,10 @@ namespace WebUserface
             m_wView.BindFunction("min", new wkeJsNativeFunction(MinFunc));
             m_wView.BindFunction("shut", new wkeJsNativeFunction(CloseFunc));
             m_wView.BindFunction("startDrag", new wkeJsNativeFunction(startDrag));
+
+            // 增加了拖拽支持，也是参考了凹大神的代码 https://gitee.com/aochulai/NetMiniblink
+            DragDrop += DragFileDrop;
+            DragEnter += DragFileEnter;
         }
 
         private long MaxFunc(IntPtr es, IntPtr param)
@@ -109,7 +113,7 @@ namespace WebUserface
             else if (WindowState == FormWindowState.Normal)
             {
                 WindowState = FormWindowState.Maximized;
-                m_wView.RunJS("document.getElementById('max-btn').innerHTML = '♢'");
+                m_wView.RunJS("document.getElementById('max-btn').innerHTML = '♢'");    // 没找到小方块的符号，只能用♢代替了
             }
 
             return 0;
@@ -126,7 +130,6 @@ namespace WebUserface
             Close();
             return 0;
         }
-
 
         // 参考了凹大神的代码 https://gitee.com/aochulai/NetMiniblink
         private long startDrag(IntPtr es, IntPtr param)
@@ -355,6 +358,34 @@ namespace WebUserface
             {
                 MB_Common.SendMessage(Handle, (uint)WinConst.WM_SYSCOMMAND, new IntPtr(0xF000 | iParam), IntPtr.Zero);
             }
+        }
+
+        private void OnDropFiles(bool isDone, int x, int y, string[] files)
+        {
+            string data = string.Join(",", files);
+            m_wView.CallJsFunc("fireDropFileEvent", data, x, y, isDone);
+        }
+
+        private void DragFileEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.All;
+                Array items = (Array)e.Data.GetData(DataFormats.FileDrop);
+                string[] files = items.Cast<string>().ToArray();
+                Point p = PointToClient(new Point(e.X, e.Y));
+
+                OnDropFiles(false, p.X, p.Y, files);
+            }
+        }
+
+        private void DragFileDrop(object sender, DragEventArgs e)
+        {
+            Array items = (Array)e.Data.GetData(DataFormats.FileDrop);
+            string[] files = items.Cast<string>().ToArray();
+            Point p = PointToClient(new Point(e.X, e.Y));
+
+            OnDropFiles(true, p.X, p.Y, files);
         }
     }
 }

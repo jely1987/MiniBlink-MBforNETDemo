@@ -50,6 +50,20 @@
             background-color: Beige;
         }
     </style>
+    <script>
+        fireDropFileEvent = function (files, x, y, isDone) {
+            var data = {
+                detail: {
+                    files: files.split(","),
+                    x: x,
+                    y: y,
+                    isDone: isDone
+                }
+            };
+
+            document.getElementById("label").innerText = JSON.stringify(data.detail);
+        }
+    </script>
 </head>
 <body>
     <div class="header" onmousedown="startDrag()" ondblclick="max()">
@@ -65,6 +79,8 @@
         <div class="btn" onclick="alert('整个可见页面都是web页，c#原生界面只作为载体在底层默默运行，完全不可见')">按钮1</div>
         <div class="btn" onclick="alert('边框可以拖动大小')">按钮2</div>
         <div class="btn" onclick="alert('双击标题栏可实现最大化，原生界面那种拖到屏幕顶部即可最大化的操作实现不了，因为js没法实现这个事件')">按钮3</div>
+        <div class="btn" onclick="alert('支持拖动文件到本web页')">按钮4</div>
+        <div id="label">示例：</div>
     </div>
 </body>
 </html>

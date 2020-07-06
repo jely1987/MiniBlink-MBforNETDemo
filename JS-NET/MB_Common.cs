@@ -295,7 +295,7 @@ namespace MB
 
         internal static string UnicodePtrToStr(this IntPtr unicode)
         {
-            if (unicode == IntPtr.Zero)
+            /*if (unicode == IntPtr.Zero)
             {
                 return string.Empty;
             }
@@ -304,7 +304,9 @@ namespace MB
             char[] ch = new char[iLen];
             Marshal.Copy(unicode, ch, 0, iLen);
 
-            return new string(ch);
+            return new string(ch);*/
+
+            return Marshal.PtrToStringUni(unicode);
         }
 
         internal static IntPtr StrToUnicodePtr(this string str)
