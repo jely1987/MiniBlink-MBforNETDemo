@@ -10,6 +10,7 @@ using System.Collections;
 using System.Reflection;
 using System.Dynamic;
 using System.Net;
+using System.Drawing.Imaging;
 
 namespace MB
 {
@@ -38,6 +39,7 @@ namespace MB
         private wkeConsoleCallback m_wkeConsoleCallback;
         private wkeLoadUrlBeginCallback m_wkeLoadUrlBeginCallback;
         private wkeLoadUrlEndCallback m_wkeLoadUrlEndCallback;
+        private wkeLoadUrlFailCallback m_wkeLoadUrlFailCallback;
         private wkeDidCreateScriptContextCallback m_wkeDidCreateScriptContextCallback;
         private wkeWillReleaseScriptContextCallback m_wkeWillReleaseScriptContextCallback;
         private wkeNetResponseCallback m_wkeNetResponseCallback;
@@ -59,6 +61,7 @@ namespace MB
         private event EventHandler<ConsoleEventArgs> m_consoleHandler = null;
         private event EventHandler<LoadUrlBeginEventArgs> m_loadUrlBeginHandler = null;
         private event EventHandler<LoadUrlEndEventArgs> m_loadUrlEndHandler = null;
+        private event EventHandler<LoadUrlFailEventArgs> m_loadUrlFailHandler = null;
         private event EventHandler<DidCreateScriptContextEventArgs> m_didCreateScriptContextHandler = null;
         private event EventHandler<WillReleaseScriptContextEventArgs> m_willReleaseScriptContextHandler = null;
         private event EventHandler<NetResponseEventArgs> m_netResponseHandler = null;
@@ -563,6 +566,29 @@ namespace MB
                 if (m_loadUrlEndHandler == null)
                 {
                     MBApi.wkeOnLoadUrlEnd(Handle, null, IntPtr.Zero);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 载入URL失败
+        /// </summary>
+        public event EventHandler<LoadUrlFailEventArgs> OnLoadUrlFail
+        {
+            add
+            {
+                if (m_loadUrlFailHandler == null)
+                {
+                    MBApi.wkeOnLoadUrlFail(Handle, m_wkeLoadUrlFailCallback, IntPtr.Zero);
+                }
+                m_loadUrlFailHandler += value;
+            }
+            remove
+            {
+                m_loadUrlFailHandler -= value;
+                if (m_loadUrlFailHandler == null)
+                {
+                    MBApi.wkeOnLoadUrlFail(Handle, null, IntPtr.Zero);
                 }
             }
         }
@@ -1115,12 +1141,12 @@ namespace MB
         }
 
 
-        #region 静态方法
+        #region 基本方法
 
         /// <summary>
         /// 初始化miniblink，如果没有调用，则在 new WebView 时会自己初始化
         /// </summary>
-        public static void wkeInitialize()
+        public void wkeInitialize()
         {
             if (MBApi.wkeIsInitialize() == 0)
             {
@@ -1132,7 +1158,7 @@ namespace MB
         /// 初始化miniblink，并可以设置一些参数，如果没有调用，则在 new WebView 时会自己初始化
         /// </summary>
         /// <param name="settings"></param>
-        public static void wkeInitialize(wkeSettings settings)
+        public void wkeInitialize(wkeSettings settings)
         {
             if (MBApi.wkeIsInitialize() == 0)
             {
@@ -1143,7 +1169,7 @@ namespace MB
         /// <summary>
         /// 获取版本
         /// </summary>
-        public static uint Version
+        public uint Version
         {
             get { return MBApi.wkeGetVersion(); }
         }
@@ -1151,7 +1177,7 @@ namespace MB
         /// <summary>
         /// 获取版本信息
         /// </summary>
-        public static string VersionString
+        public string VersionString
         {
             get
             {
@@ -1168,7 +1194,7 @@ namespace MB
         /// 设置代理
         /// </summary>
         /// <param name="proxy"></param>
-        public static void SetProxy(wkeProxy proxy)
+        public void SetProxy(wkeProxy proxy)
         {
             MBApi.wkeSetProxy(ref proxy);
         }
@@ -1178,7 +1204,7 @@ namespace MB
         /// </summary>
         /// <param name="WebFrame">框架句柄</param>
         /// <returns></returns>
-        public static bool FrameIsMainFrame(IntPtr WebFrame)
+        public bool FrameIsMainFrame(IntPtr WebFrame)
         {
             return MBApi.wkeIsMainFrame(WebFrame) != 0;
         }
@@ -1188,7 +1214,7 @@ namespace MB
         /// </summary>
         /// <param name="WebFrame"></param>
         /// <returns></returns>
-        public static bool FrameIsRemoteFrame(IntPtr WebFrame)
+        public bool FrameIsRemoteFrame(IntPtr WebFrame)
         {
             return MBApi.wkeIsWebRemoteFrame(WebFrame) != 0;
         }
@@ -1198,7 +1224,7 @@ namespace MB
         /// </summary>
         /// <param name="WebFrame">框架句柄</param>
         /// <returns></returns>
-        public static IntPtr FrameGetMainWorldScriptContext(IntPtr WebFrame)
+        public IntPtr FrameGetMainWorldScriptContext(IntPtr WebFrame)
         {
             IntPtr v8ContextPtr = IntPtr.Zero;
             MBApi.wkeWebFrameGetMainWorldScriptContext(WebFrame, ref v8ContextPtr);
@@ -1209,7 +1235,7 @@ namespace MB
         /// 获取v8Isolate
         /// </summary>
         /// <returns></returns>
-        public static IntPtr GetBlinkMainThreadIsolate()
+        public IntPtr GetBlinkMainThreadIsolate()
         {
             return MBApi.wkeGetBlinkMainThreadIsolate();
         }
@@ -1219,7 +1245,7 @@ namespace MB
         /// </summary>
         /// <param name="job"></param>
         /// <param name="type">MIMEType</param>
-        public static void NetSetMIMEType(IntPtr job, string MIMEType)
+        public void NetSetMIMEType(IntPtr job, string MIMEType)
         {
             MBApi.wkeNetSetMIMEType(job, MIMEType);
         }
@@ -1228,21 +1254,241 @@ namespace MB
         /// 获取mimeType。此方法应该在 OnNetResponse 事件中使用
         /// </summary>
         /// <param name="job"></param>
+        /// <param name="mime"></param>
         /// <returns></returns>
-        public static string NetGetMIMEType(IntPtr job)
+        public string NetGetMIMEType(IntPtr job, IntPtr mime)
         {
-            IntPtr mime = MBApi.wkeCreateStringW(null, 0);
-            if (mime == IntPtr.Zero)
-            {
-                return string.Empty;
-            }
+            IntPtr ptr = MBApi.wkeNetGetMIMEType(job, mime);
+            return ptr.UTF8PtrToStr();
+        }
 
-            MBApi.wkeNetGetMIMEType(job, mime);
-            IntPtr pStr = MBApi.wkeGetStringW(mime);
-            string mimeType = pStr.UTF8PtrToStr();
-            MBApi.wkeDeleteString(mime);
+        /// <summary>
+        /// 继续执行中断的网络任务，参看wkeNetHoldJobToAsynCommit接口。
+        /// </summary>
+        /// <param name="job"></param>
+        public void NetContinueJob(IntPtr job)
+        {
+            MBApi.wkeNetContinueJob(job);
+        }
 
-            return mimeType;
+        /// <summary>
+        /// 通过jobPtr获取当前请求的url。
+        /// </summary>
+        /// <param name="job"></param>
+        public string NetGetUrlByJob(IntPtr job)
+        {
+            IntPtr ptr = MBApi.wkeNetGetUrlByJob(job);
+            return ptr.UTF8PtrToStr();
+        }
+
+        /// <summary>
+        /// 获取Raw格式的HTTP请求数据，wkeSlist是个保存了网络数据的链表结构，请参看wke.h文件。
+        /// </summary>
+        /// <param name="job"></param>
+        public wkeSlist NetGetRawHttpHead(IntPtr job)
+        {
+            IntPtr ptr = MBApi.wkeNetGetRawHttpHead(job);
+            return (wkeSlist)ptr.UTF8PtrToStruct(typeof(wkeSlist));
+        }
+
+        /// <summary>
+        /// 获取Raw格式的HTTP响应数据，wkeSlist是个保存了网络数据的链表结构，请参看wke.h文件。
+        /// </summary>
+        /// <param name="job"></param>
+        /// <returns></returns>
+        public wkeSlist NetGetRawResponseHead(IntPtr job)
+        {
+            IntPtr ptr = MBApi.wkeNetGetRawResponseHead(job);
+            return (wkeSlist)ptr.UTF8PtrToStruct(typeof(wkeSlist));
+        }
+
+        /// <summary>
+        /// 取消本次网络请求，需要在wkeOnLoadUrlBegin里调用。
+        /// </summary>
+        /// <param name="job"></param>
+        public void NetCancelRequest(IntPtr job)
+        {
+            MBApi.wkeNetCancelRequest(job);
+        }
+
+        /// <summary>
+        /// 网络访问经常存在异步操作，当wkeOnLoadUrlBegin里拦截到一个请求后如不能马上判断出结果，此时可以调用本接口，处理完成后需调用wkeNetContinueJob来让此请求继续。
+        /// </summary>
+        /// <param name="job"></param>
+        /// <returns></returns>
+        public bool NetHoldJobToAsynCommit(IntPtr job)
+        {
+            return MBApi.wkeNetHoldJobToAsynCommit(job) == 1 ? true : false;
+        }
+
+        /// <summary>
+        /// 修改当前请求的url。
+        /// </summary>
+        /// <param name="job"></param>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public bool NetChangeRequestUrl(IntPtr job, string url)
+        {
+            return MBApi.wkeNetChangeRequestUrl(job, url) == 1 ? true : false;
+        }
+
+        /// <summary>
+        /// 创建一个网络请求
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="method"></param>
+        /// <param name="mime"></param>
+        /// <returns></returns>
+        public IntPtr NetCreateWebUrlRequest(IntPtr url, IntPtr method, IntPtr mime)
+        {
+            return MBApi.wkeNetCreateWebUrlRequest(url, method, mime);
+        }
+
+        /// <summary>
+        /// 创建一个网络请求
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public IntPtr NetCreateWebUrlRequest2(IntPtr request)
+        {
+            return MBApi.wkeNetCreateWebUrlRequest2(request);
+        }
+
+        /// <summary>
+        /// 复制一个网络请求
+        /// </summary>
+        /// <param name="job"></param>
+        /// <param name="needExtraData"></param>
+        /// <returns></returns>
+        public IntPtr NetCopyWebUrlRequest(IntPtr job, bool needExtraData)
+        {
+            return MBApi.wkeNetCopyWebUrlRequest(job, needExtraData);
+        }
+
+        /// <summary>
+        /// 取消网络请求。
+        /// </summary>
+        /// <param name="request"></param>
+        public void NetDeleteBlinkWebURLRequestPtr(IntPtr request)
+        {
+            MBApi.wkeNetDeleteBlinkWebURLRequestPtr(request);
+        }
+
+        /// <summary>
+        /// 在指定网络请求中插入一个请求头。
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public void NetAddHTTPHeaderFieldToUrlRequest(IntPtr request, IntPtr name, IntPtr value)
+        {
+            MBApi.wkeNetAddHTTPHeaderFieldToUrlRequest(request, name, value);
+        }
+
+        /// <summary>
+        /// 开始网络请求。
+        /// </summary>
+        /// <param name="webView"></param>
+        /// <param name="request"></param>
+        /// <param name="param"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public int NetStartUrlRequest(IntPtr webView, IntPtr request, IntPtr param, wkeUrlRequestCallbacks callback)
+        {
+            return MBApi.wkeNetStartUrlRequest(webView, request, param, callback);
+        }
+
+        /// <summary>
+        /// 获取HTTP响应状态码。
+        /// </summary>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        public int NetGetHttpStatusCode(IntPtr response)
+        {
+            return MBApi.wkeNetGetHttpStatusCode(response);
+        }
+
+        /// <summary>
+        /// 获取响应数据大小。
+        /// </summary>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        public long NetGetExpectedContentLength(IntPtr response)
+        {
+            return MBApi.wkeNetGetExpectedContentLength(response);
+        }
+
+        /// <summary>
+        /// 获取响应url。
+        /// </summary>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        public string NetGetResponseUrl(IntPtr response)
+        {
+            IntPtr ptr = MBApi.wkeNetGetResponseUrl(response);
+            return ptr.UTF8PtrToStr();
+        }
+
+        /// <summary>
+        /// 取消网络请求。
+        /// </summary>
+        /// <param name="requestId"></param>
+        public void NetCancelWebUrlRequest(int requestId)
+        {
+            MBApi.wkeNetCancelWebUrlRequest(requestId);
+        }
+
+        /// <summary>
+        /// 获取此请求中的post数据，注意：只有当请求是post时才可获取到，get请求直接从url上取就好了。
+        /// </summary>
+        /// <param name="job"></param>
+        /// <returns></returns>
+        public wkePostBodyElements NetGetPostBody(IntPtr job)
+        {
+            IntPtr ptr = MBApi.wkeNetGetPostBody(job);
+            return (wkePostBodyElements)ptr.UTF8PtrToStruct(typeof(wkePostBodyElements));
+        }
+
+        /// <summary>
+        /// 创建一组post数据内容
+        /// </summary>
+        /// <param name="job"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public wkePostBodyElements NetCreatePostBodyElements(IntPtr job, long length)
+        {
+            IntPtr ptr = MBApi.wkeNetCreatePostBodyElements(job, length);
+            return (wkePostBodyElements)ptr.UTF8PtrToStruct(typeof(wkePostBodyElements));
+        }
+
+        /// <summary>
+        /// 干掉指定的post数据内容组，释放内存。
+        /// </summary>
+        /// <param name="elements"></param>
+        /// <returns></returns>
+        public IntPtr NetFreePostBodyElements(IntPtr elements)
+        {
+            return MBApi.wkeNetFreePostBodyElements(elements);
+        }
+
+        /// <summary>
+        /// 创建一个post数据内容。
+        /// </summary>
+        /// <param name="webView"></param>
+        /// <returns></returns>
+        public wkePostBodyElement NetCreatePostBodyElement(IntPtr webView)
+        {
+            IntPtr ptr = MBApi.wkeNetCreatePostBodyElement(webView);
+            return (wkePostBodyElement)ptr.UTF8PtrToStruct(typeof(wkePostBodyElement));
+        }
+
+        /// <summary>
+        /// 干掉指定的post数据内容，释放内存。
+        /// </summary>
+        /// <param name="elements"></param>
+        public void NetFreePostBodyElement(IntPtr elements)
+        {
+            MBApi.wkeNetFreePostBodyElement(elements);
         }
 
         /// <summary>
@@ -1252,19 +1498,29 @@ namespace MB
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <param name="response"></param>
-        public static void NetSetHTTPHeaderField(IntPtr job, string key, string value, bool response)
+        public void NetSetHTTPHeaderField(IntPtr job, string key, string value, bool response)
         {
             MBApi.wkeNetSetHTTPHeaderField(job, key, value, response);
         }
 
         /// <summary>
-        /// 设置URL。此方法应该在 OnLoadUrlBegin 事件中使用
+        /// 获取HTTP请求头
         /// </summary>
         /// <param name="job"></param>
-        /// <param name="URL"></param>
-        public static void NetSetURL(IntPtr job, string URL)
+        /// <param name="key"></param>
+        public IntPtr NetGetHTTPHeaderField(IntPtr job, string key)
         {
-            MBApi.wkeNetSetURL(job, URL);
+            return MBApi.wkeNetGetHTTPHeaderField(job, key);
+        }
+
+        /// <summary>
+        /// 获取HTTP响应头
+        /// </summary>
+        /// <param name="job"></param>
+        /// <param name="key"></param>
+        public IntPtr NetGetHTTPHeaderFieldFromResponse(IntPtr job, string key)
+        {
+            return MBApi.wkeNetGetHTTPHeaderFieldFromResponse(job, key);
         }
 
         /// <summary>
@@ -1272,7 +1528,7 @@ namespace MB
         /// </summary>
         /// <param name="job"></param>
         /// <param name="data"></param>
-        public static void NetSetData(IntPtr job, byte[] data)
+        public void NetSetData(IntPtr job, byte[] data)
         {
             MBApi.wkeNetSetData(job, data, data.Length);
         }
@@ -1282,7 +1538,7 @@ namespace MB
         /// </summary>
         /// <param name="job"></param>
         /// <param name="str">string数据</param>
-        public static void NetSetData(IntPtr job, string str)
+        public void NetSetData(IntPtr job, string str)
         {
             byte[] data = Encoding.UTF8.GetBytes(str);
             MBApi.wkeNetSetData(job, data, data.Length);
@@ -1293,12 +1549,12 @@ namespace MB
         /// </summary>
         /// <param name="job"></param>
         /// <param name="png">PNG图片数据</param>
-        public static void NetSetData(IntPtr job, System.Drawing.Image png)
+        public void NetSetData(IntPtr job, Image png)
         {
             byte[] data = null;
             using (MemoryStream ms = new MemoryStream())
             {
-                png.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                png.Save(ms, ImageFormat.Png);
                 data = ms.GetBuffer();
             }
             MBApi.wkeNetSetData(job, data, data.Length);
@@ -1310,7 +1566,7 @@ namespace MB
         /// <param name="job"></param>
         /// <param name="img">图片数据</param>
         /// <param name="fmt">图片格式</param>
-        public static void NetSetData(IntPtr job, System.Drawing.Image img, System.Drawing.Imaging.ImageFormat fmt)
+        public void NetSetData(IntPtr job, Image img, ImageFormat fmt)
         {
             byte[] data = null;
             using (MemoryStream ms = new MemoryStream())
@@ -1327,12 +1583,29 @@ namespace MB
         /// 而WebView.NetSetData是在网络数据还没发送的时候修改
         /// </summary>
         /// <param name="job"></param>
-        public static void NetHookRequest(IntPtr job)
+        public void NetHookRequest(IntPtr job)
         {
             MBApi.wkeNetHookRequest(job);
         }
 
-        public static int NetGetFavicon(IntPtr WebView, wkeNetResponseCallback Callback, IntPtr param)
+        /// <summary>
+        /// 获取请求方法
+        /// </summary>
+        /// <param name="job"></param>
+        /// <returns></returns>
+        public wkeRequestType GetRequestMethod(IntPtr job)
+        {
+            return MBApi.wkeNetGetRequestMethod(job);
+        }
+
+        /// <summary>
+        /// 获取图标，结果再Callback中取
+        /// </summary>
+        /// <param name="WebView"></param>
+        /// <param name="Callback"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public int NetGetFavicon(IntPtr WebView, wkeNetResponseCallback Callback, IntPtr param)
         {
             return MBApi.wkeNetGetFavicon(WebView, Callback, param);
         }
@@ -1351,14 +1624,10 @@ namespace MB
         /// 执行cookie命令，清空等操作
         /// </summary>
         /// <param name="command"></param>
-        public static void PerformCookieCommand(wkeCookieCommand command)
+        public void PerformCookieCommand(wkeCookieCommand command)
         {
             MBApi.wkePerformCookieCommand(command);
         }
-
-        #endregion
-
-        #region 方法
 
         /// <summary>
         /// 绑定指定窗口
@@ -2960,6 +3229,27 @@ namespace MB
         public byte[] Data
         {
             get { return m_buf.StructToBytes(); }
+        }
+    }
+
+    /// <summary>
+    /// OnLoadUrlFail事件参数
+    /// </summary>
+    public class LoadUrlFailEventArgs : MiniblinkEventArgs
+    {
+        private IntPtr m_url;
+
+        public LoadUrlFailEventArgs(IntPtr webView, IntPtr url, IntPtr job) : base(webView)
+        {
+            m_url = url;
+            Job = job;
+        }
+
+        public IntPtr Job { get; }
+
+        public string URL
+        {
+            get { return m_url.UTF8PtrToStr(); }
         }
     }
 

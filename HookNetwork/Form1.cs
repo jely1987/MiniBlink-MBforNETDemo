@@ -24,6 +24,49 @@ namespace HookNetwork
             m_wView = new WebView();
             m_wView.Bind(this);
             m_wView.LoadURL("https://www.baidu.com/");
+
+            m_wView.OnLoadUrlBegin += OnLoadUrlBegin;
+            m_wView.OnLoadUrlEnd += OnLoadUrlEnd;
+        }
+
+        private void OnLoadUrlBegin(object sender, LoadUrlBeginEventArgs e)
+        {
+            string strMethod = null;
+
+            switch (m_wView.GetRequestMethod(e.Job))
+            {
+                case wkeRequestType.Get:
+                    strMethod = "GET";
+                    break;
+
+                case wkeRequestType.Post:
+                    strMethod = "POST";
+                    break;
+
+                case wkeRequestType.Put:
+                    strMethod = "PUT";
+                    break;
+
+                case wkeRequestType.Invalidation:
+                default:
+                    strMethod = "UNKNOW";
+                    break;
+            }
+            // 插入新的网络请求
+
+
+            // 删除指定的网络请求
+
+
+            // 修改指定的网络请求
+
+
+            // 查询指定的网络请求
+        }
+
+        private void OnLoadUrlEnd(object sender, LoadUrlEndEventArgs e)
+        {
+            throw new NotImplementedException();
         }
     }
 }
