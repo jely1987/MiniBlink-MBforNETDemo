@@ -27,6 +27,8 @@ namespace HookNetwork
 
             m_wView.OnLoadUrlBegin += OnLoadUrlBegin;
             m_wView.OnLoadUrlEnd += OnLoadUrlEnd;
+            m_wView.OnNetResponse += OnNetResponse;
+            m_wView.OnLoadUrlFail += OnLoadUrlFail;
         }
 
         private void OnLoadUrlBegin(object sender, LoadUrlBeginEventArgs e)
@@ -65,6 +67,16 @@ namespace HookNetwork
         }
 
         private void OnLoadUrlEnd(object sender, LoadUrlEndEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void OnNetResponse(object sender, NetResponseEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void OnLoadUrlFail(object sender, LoadUrlFailEventArgs e)
         {
             throw new NotImplementedException();
         }
