@@ -127,12 +127,12 @@ namespace HookNetwork
             m_wView.NetChangeRequestUrl(e.Job, "新的url");    // 修改url
             m_wView.NetSetMIMEType(e.Job, "text/html");    // 设置新的mime
 
-            // 如果某个请求需要进行一些耗时修改或其他操作，不想影响主流程，可以异步
+            // 如果某个请求需要进行一些耗时修改或其他操作，不想影响主流程可以异步
             if (m_wView.NetHoldJobToAsynCommit(e.Job))
             {
                 Task.Factory.StartNew(() =>
                 {
-                    // 耗时操作
+                    File.ReadAllText("某个文件");    // 或等待其他响应等耗时操作
                 }).ContinueWith(arg =>
                 {
                     m_wView.NetContinueJob(e.Job);
