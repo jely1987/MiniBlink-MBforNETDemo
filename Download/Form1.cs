@@ -23,8 +23,9 @@ namespace Download
 
             m_wView = new WebView();
             m_wView.Bind(this);
-            m_wView.OnDownload += OnDownload;
             m_wView.LoadURL("https://pc.weixin.qq.com/");
+
+            m_wView.OnDownload += OnDownload;
         }
 
         void OnDownload(object sender, DownloadEventArgs e)

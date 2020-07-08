@@ -1256,9 +1256,9 @@ namespace MB
         /// <param name="job"></param>
         /// <param name="mime"></param>
         /// <returns></returns>
-        public string NetGetMIMEType(IntPtr job, IntPtr mime)
+        public string NetGetMIMEType(IntPtr job, string mime)
         {
-            IntPtr ptr = MBApi.wkeNetGetMIMEType(job, mime);
+            IntPtr ptr = MBApi.wkeNetGetMIMEType(job, mime.StrToUtf8Ptr());
             return ptr.UTF8PtrToStr();
         }
 
@@ -1455,9 +1455,9 @@ namespace MB
         /// <param name="job"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public wkePostBodyElements NetCreatePostBodyElements(IntPtr job, long length)
+        public wkePostBodyElements NetCreatePostBodyElements(long length)
         {
-            IntPtr ptr = MBApi.wkeNetCreatePostBodyElements(job, length);
+            IntPtr ptr = MBApi.wkeNetCreatePostBodyElements(Handle, length);
             return (wkePostBodyElements)ptr.UTF8PtrToStruct(typeof(wkePostBodyElements));
         }
 
@@ -1466,9 +1466,9 @@ namespace MB
         /// </summary>
         /// <param name="elements"></param>
         /// <returns></returns>
-        public IntPtr NetFreePostBodyElements(IntPtr elements)
+        public void NetFreePostBodyElements(IntPtr elements)
         {
-            return MBApi.wkeNetFreePostBodyElements(elements);
+            MBApi.wkeNetFreePostBodyElements(elements);
         }
 
         /// <summary>
@@ -1476,9 +1476,9 @@ namespace MB
         /// </summary>
         /// <param name="webView"></param>
         /// <returns></returns>
-        public wkePostBodyElement NetCreatePostBodyElement(IntPtr webView)
+        public wkePostBodyElement NetCreatePostBodyElement()
         {
-            IntPtr ptr = MBApi.wkeNetCreatePostBodyElement(webView);
+            IntPtr ptr = MBApi.wkeNetCreatePostBodyElement(Handle);
             return (wkePostBodyElement)ptr.UTF8PtrToStruct(typeof(wkePostBodyElement));
         }
 
@@ -1486,9 +1486,9 @@ namespace MB
         /// 干掉指定的post数据内容，释放内存。
         /// </summary>
         /// <param name="elements"></param>
-        public void NetFreePostBodyElement(IntPtr elements)
+        public void NetFreePostBodyElement(IntPtr element)
         {
-            MBApi.wkeNetFreePostBodyElement(elements);
+            MBApi.wkeNetFreePostBodyElement(element);
         }
 
         /// <summary>
@@ -1508,9 +1508,9 @@ namespace MB
         /// </summary>
         /// <param name="job"></param>
         /// <param name="key"></param>
-        public IntPtr NetGetHTTPHeaderField(IntPtr job, string key)
+        public string NetGetHTTPHeaderField(IntPtr job, string key)
         {
-            return MBApi.wkeNetGetHTTPHeaderField(job, key);
+            return MBApi.wkeNetGetHTTPHeaderField(job, key).UTF8PtrToStr();
         }
 
         /// <summary>
@@ -1518,9 +1518,9 @@ namespace MB
         /// </summary>
         /// <param name="job"></param>
         /// <param name="key"></param>
-        public IntPtr NetGetHTTPHeaderFieldFromResponse(IntPtr job, string key)
+        public string NetGetHTTPHeaderFieldFromResponse(IntPtr job, string key)
         {
-            return MBApi.wkeNetGetHTTPHeaderFieldFromResponse(job, key);
+            return MBApi.wkeNetGetHTTPHeaderFieldFromResponse(job, key).UTF8PtrToStr();
         }
 
         /// <summary>
@@ -3229,6 +3229,7 @@ namespace MB
         public byte[] Data
         {
             get { return m_buf.StructToBytes(); }
+            set { m_buf = Data.ByteToUtf8Ptr(); }
         }
     }
 
