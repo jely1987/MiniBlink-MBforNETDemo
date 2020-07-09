@@ -36,9 +36,9 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(53, 45);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(209, 12);
+            this.label1.Size = new System.Drawing.Size(497, 12);
             this.label1.TabIndex = 0;
-            this.label1.Text = "wkeOnPrint接口还不完善，等盟主更新";
+            this.label1.Text = "wkeOnPrint接口还不完善，等盟主更新，不用该接口也可以先把网页保存成图片，然后再打印\r\n";
             // 
             // Form1
             // 
