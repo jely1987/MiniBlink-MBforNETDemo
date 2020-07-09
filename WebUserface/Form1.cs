@@ -131,11 +131,17 @@ namespace WebUserface
             return 0;
         }
 
-        // 参考了凹大神的代码 https://gitee.com/aochulai/NetMiniblink
+        // 参考了凹大神的代码 https://gitee.com/aochulai/NetMiniblink ，增加拖动到屏幕上方最大化功能
         private long startDrag(IntPtr es, IntPtr param)
         {
-            if (!m_bIsDrop && WindowState != FormWindowState.Maximized && MouseButtons == MouseButtons.Left)
+            if (!m_bIsDrop && MouseButtons == MouseButtons.Left)
             {
+                if (WindowState == FormWindowState.Maximized)
+                {
+                    WindowState = FormWindowState.Normal;
+                    Location = new Point(Location.X, MousePosition.Y - 16);
+                }
+
                 m_bIsDrop = true;
                 Point dropPos = MousePosition;
                 Point dropLoc = Location;
@@ -153,6 +159,11 @@ namespace WebUserface
                     {
                         Location = new Point(iX, iY);
                         Cursor = Cursors.SizeAll;
+
+                        if (iY <= 0)
+                        {
+                            WindowState = FormWindowState.Maximized;
+                        }
                     }));
                 }, () =>
                 {
