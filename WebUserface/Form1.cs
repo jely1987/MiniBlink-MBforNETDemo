@@ -1,12 +1,12 @@
 ﻿using MB;
 using System;
-using System.IO;
-using System.Text;
 using System.Drawing;
-using System.Threading;
-using System.Windows.Forms;
-using System.Threading.Tasks;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace WebUserface
 {
@@ -96,7 +96,7 @@ namespace WebUserface
             m_wView.BindFunction("max", new wkeJsNativeFunction(MaxFunc));
             m_wView.BindFunction("min", new wkeJsNativeFunction(MinFunc));
             m_wView.BindFunction("shut", new wkeJsNativeFunction(CloseFunc));
-            m_wView.BindFunction("startDrag", new wkeJsNativeFunction(startDrag));
+            m_wView.BindFunction("drag", new wkeJsNativeFunction(onDrag));
 
             // 增加了拖拽支持，也是参考了凹大神的代码 https://gitee.com/aochulai/NetMiniblink
             DragDrop += DragFileDrop;
@@ -132,41 +132,50 @@ namespace WebUserface
         }
 
         // 参考了凹大神的代码 https://gitee.com/aochulai/NetMiniblink ，增加拖动到屏幕上方最大化功能
-        private long startDrag(IntPtr es, IntPtr param)
+        private long onDrag(IntPtr es, IntPtr param)
         {
             if (!m_bIsDrop && MouseButtons == MouseButtons.Left)
             {
                 if (WindowState == FormWindowState.Maximized)
                 {
                     WindowState = FormWindowState.Normal;
-                    Location = new Point(Location.X, MousePosition.Y - 16);
+                    Location = new Point(Location.X, MousePosition.Y - 17);
                 }
 
                 m_bIsDrop = true;
+                m_wView.MouseEnabled = false;
                 Point dropPos = MousePosition;
                 Point dropLoc = Location;
-                m_wView.MouseEnabled = false;
+                Point last = MousePosition;
 
-                MonitorMouse(p =>
+                Task.Factory.StartNew(() =>
                 {
-                    int iX = p.X - dropPos.X;
-                    int iY = p.Y - dropPos.Y;
-
-                    iX = dropLoc.X + iX;
-                    iY = dropLoc.Y + iY;
-
-                    Invoke(new Action(() =>
+                    SpinWait waiter = new SpinWait();
+                    while (MouseButtons.HasFlag(MouseButtons.Left))
                     {
-                        Location = new Point(iX, iY);
-                        Cursor = Cursors.SizeAll;
-
-                        if (iY <= 0)
+                        Point curr = MousePosition;
+                        if (!curr.Equals(last))
                         {
-                            WindowState = FormWindowState.Maximized;
+                            int iX = curr.X + dropLoc.X - dropPos.X;
+                            int iY = curr.Y + dropLoc.Y - dropPos.Y;
+
+                            Invoke(new Action(() =>
+                            {
+                                Location = new Point(iX, iY);
+                                Cursor = Cursors.SizeAll;
+
+                                if (iY <= 0)
+                                {
+                                    WindowState = FormWindowState.Maximized;
+                                }
+                            }));
+
+                            last = curr;
                         }
-                    }));
-                }, () =>
-                {
+
+                        waiter.SpinOnce();
+                    }
+
                     Invoke(new Action(() =>
                     {
                         ResetCursor();
@@ -178,31 +187,6 @@ namespace WebUserface
             }
 
             return 0;
-        }
-
-        private static void MonitorMouse(Action<Point> onMove, Action onFinish = null)
-        {
-            var last = MousePosition;
-
-            Task.Factory.StartNew(() =>
-            {
-                var waiter = new SpinWait();
-
-                while (MouseButtons.HasFlag(MouseButtons.Left))
-                {
-                    var curr = MousePosition;
-
-                    if (curr.Equals(last) == false)
-                    {
-                        onMove(curr);
-                        last = curr;
-                    }
-
-                    waiter.SpinOnce();
-                }
-
-                onFinish?.Invoke();
-            });
         }
 
         private ResizeDirect SetCursor(Point point)
