@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HookNetwork", "HookNetwork\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReptilesData", "ReptilesData\ReptilesData.csproj", "{508E5C4B-F1AE-491B-81CA-61E9D37BDFFE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Print", "Print\Print.csproj", "{0109A278-C0F0-4198-8C80-BFEC84F08D09}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,14 @@ Global
 		{508E5C4B-F1AE-491B-81CA-61E9D37BDFFE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{508E5C4B-F1AE-491B-81CA-61E9D37BDFFE}.Release|x86.ActiveCfg = Release|Any CPU
 		{508E5C4B-F1AE-491B-81CA-61E9D37BDFFE}.Release|x86.Build.0 = Release|Any CPU
+		{0109A278-C0F0-4198-8C80-BFEC84F08D09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0109A278-C0F0-4198-8C80-BFEC84F08D09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0109A278-C0F0-4198-8C80-BFEC84F08D09}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0109A278-C0F0-4198-8C80-BFEC84F08D09}.Debug|x86.Build.0 = Debug|Any CPU
+		{0109A278-C0F0-4198-8C80-BFEC84F08D09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0109A278-C0F0-4198-8C80-BFEC84F08D09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0109A278-C0F0-4198-8C80-BFEC84F08D09}.Release|x86.ActiveCfg = Release|Any CPU
+		{0109A278-C0F0-4198-8C80-BFEC84F08D09}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
