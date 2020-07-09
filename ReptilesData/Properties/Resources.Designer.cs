@@ -59,14 +59,5 @@ namespace ReptilesData.Properties {
                 resourceCulture = value;
             }
         }
-        
-        /// <summary>
-        ///   查找类似 {&quot;KeyID&quot;:1192691271578044288,&quot;Code&quot;:&quot;0&quot;,&quot;Msg&quot;:&quot;Success&quot;,&quot;Token&quot;:&quot;&quot;,&quot;Address&quot;:&quot;www.bangongbt.cn&quot;,&quot;KeyValue&quot;:&quot;昆明办公桌椅&quot;,&quot;RelatKey&quot;:&quot;昆明办公桌椅定制|昆明办公家具城|昆明哪里卖办公家具|昆明办公桌椅|昆明办公桌椅厂家|昆明办公家具哪里多|昆明现代办公家具|昆明办公家具那些地方有|昆明二手办公桌椅|昆明办公家具卖场|昆明哪里有卖办公桌椅|昆明办公桌批发市场|昆明办公家具哪家好|昆明二手办公家具市场在哪里|昆明卖办公家具在哪个市场|昆明办公家具哪里便宜|昆明买办公桌市场在哪里|昆明卖办公家具的地方|昆明哪里有办公家具|昆明办公家具有限电话|人体工程学桌椅高比例|国标桌椅身高对照表|人体身高与桌椅比例|桌子到身体哪个位置|人体工程学桌子椅子高度|儿童坐什么椅子写作业好|人体工程学视平线高度|儿童桌椅高比例|明式平头案标准尺寸|人体工程学桌椅高度差|昆明办公桌批发市场|昆明哪里有卖办公桌的|昆明办公桌椅市场|昆明办公桌批发厂|昆明卖办公家具在哪个市场|昆明课桌批发市场|昆明办公桌椅批发|昆明办公 [字符串的其余部分被截断]&quot;; 的本地化字符串。
-        /// </summary>
-        internal static string task {
-            get {
-                return ResourceManager.GetString("task", resourceCulture);
-            }
-        }
     }
 }
