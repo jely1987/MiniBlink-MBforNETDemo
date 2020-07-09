@@ -46,7 +46,7 @@
     
     mimetype: application/x-microsoft.net.object.binary.base64
     value   : The object must be serialized with 
-            : System.Serialization.Formatters.Binary.BinaryFormatter
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
     
     mimetype: application/x-microsoft.net.object.soap.base64
@@ -60,6 +60,7 @@
             : and then encoded with base64 encoding.
     -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
@@ -68,9 +69,10 @@
               <xsd:sequence>
                 <xsd:element name="value" type="xsd:string" minOccurs="0" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" />
+              <xsd:attribute name="name" use="required" type="xsd:string" />
               <xsd:attribute name="type" type="xsd:string" />
               <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="assembly">
@@ -85,9 +87,10 @@
                 <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
                 <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
               <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
               <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
@@ -109,9 +112,12 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="task" xml:space="preserve">
+    <value>{"KeyID":1192691271578044288,"Code":"0","Msg":"Success","Token":"","Address":"www.bangongbt.cn","KeyValue":"昆明办公桌椅","RelatKey":"昆明办公桌椅定制|昆明办公家具城|昆明哪里卖办公家具|昆明办公桌椅|昆明办公桌椅厂家|昆明办公家具哪里多|昆明现代办公家具|昆明办公家具那些地方有|昆明二手办公桌椅|昆明办公家具卖场|昆明哪里有卖办公桌椅|昆明办公桌批发市场|昆明办公家具哪家好|昆明二手办公家具市场在哪里|昆明卖办公家具在哪个市场|昆明办公家具哪里便宜|昆明买办公桌市场在哪里|昆明卖办公家具的地方|昆明哪里有办公家具|昆明办公家具有限电话|人体工程学桌椅高比例|国标桌椅身高对照表|人体身高与桌椅比例|桌子到身体哪个位置|人体工程学桌子椅子高度|儿童坐什么椅子写作业好|人体工程学视平线高度|儿童桌椅高比例|明式平头案标准尺寸|人体工程学桌椅高度差|昆明办公桌批发市场|昆明哪里有卖办公桌的|昆明办公桌椅市场|昆明办公桌批发厂|昆明卖办公家具在哪个市场|昆明课桌批发市场|昆明办公桌椅批发|昆明办公家具批发市场|昆明办公桌椅批发市场|昆明办公家具哪家好|办公桌椅套装|办公椅子套|办公桌椅的价格|二手办公桌椅套装|人体工程学桌椅高比例|办公桌椅维修|现代办公桌椅|单位办公桌|政府办公家具限额标准|办公桌椅套装规格|1米4办公桌图片|办公桌图片及价格|办公桌买1米6的还是1米4的|1米2办公桌尺寸图片|新款办公桌|一米五办公桌|一米办公桌价格及图片|实木办公桌子图片价格|一米四的办公桌有多宽|普通办公桌椅图片价格|昆明办公家具哪家好|昆明美时办公家具|昆明办公家具哪里便宜|昆明二手办公家具市场在哪里|昆明办公家具情况|昆明卖办公家具在哪个市场|昆明林办公家具|昆明办公家具有限电话|昆明办公家具大型家具厂|昆明办公桌批发市场|政府办公家具限额标准|科级干部办公桌椅标准|2018办公家具采购标准|政府办公室家具标准|办公家具政府采购标准|政府家具采购标准2018|政府家具采购预算标准|政府采购限额标准以下|最新办公用品购置标准|办公设备配置标准表|昆明办公家具哪里多|昆明有哪些办公家具店|昆明办公家具哪家好|昆明二手办公家具市场在哪里|昆明卖办公家具市场|昆明酒店办公家具厂|昆明哪里有卖办公椅|昆明得胜办公家具市场|昆明办公桌椅市场|昆明办公家具批发市场","CTSearchUrl":"","TaskOperation":"","xiongzhang":"www.bangongbt.cn","etindex":-1,"WebID":1,"NewRank":41}</value>
+  </data>
 </root>
