@@ -8,4 +8,6 @@
 
 4、业务逻辑可能频繁需要js和c#交互，请参看JS-NET项目。
 
-5、QQ:17136608
+5、https://gitee.com/ampereufo/MBforNETDemo/
+
+6、QQ:17136608

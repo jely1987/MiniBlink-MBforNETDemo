@@ -55,9 +55,9 @@ namespace ReptilesData
         public Form1()
         {
             InitializeComponent();
-            #if DEBUG
+#if DEBUG
             m_log = File.AppendText("日志.txt");
-            #endif
+#endif
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -69,8 +69,6 @@ namespace ReptilesData
 
             m_wView.OnTitleChange += new EventHandler<TitleChangeEventArgs>(m_wke_OnTitleChange);
             m_wView.OnCreateView += new EventHandler<CreateViewEventArgs>(m_wke_OnCreateView);
-
-            m_currentWHD = tabPage_webView.Handle;
 
             // 设置任务内容，只能线性执行，不能有判断逻辑，如果有必须进行封装后在此调用
             m_TaskActionList.Add(new Tuple<Action<object[]>, object[]>(LoadUrl, new object[] { "https://www.baidu.com", 5 }));
@@ -116,10 +114,10 @@ namespace ReptilesData
         private void OutText(string strText)
         {
             toolStripStatusLabel1.Text = $"{m_iActionStep}、{strText}";
-            #if DEBUG
+#if DEBUG
             m_log.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} -> {m_iActionStep}、{strText}");
             m_log.Flush();
-            #endif
+#endif
         }
 
         private void newTab(string strUrl)
@@ -241,7 +239,7 @@ namespace ReptilesData
             OutText($"点击按键，键值：{iKeyValue}，等待{fDelay}秒钟");
         }
 
-        // 通用等待，参数0为需要等待的秒数
+        // 通用延时，参数0为需要等待的秒数
         private void commonDelay(object[] args)
         {
             float iSecond = float.Parse(args[0].ToString());

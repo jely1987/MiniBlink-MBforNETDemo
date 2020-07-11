@@ -135,7 +135,10 @@ namespace HookNetwork
                     File.ReadAllText("某个文件");    // 或等待其他响应等耗时操作
                 }).ContinueWith(arg =>
                 {
-                    m_wView.NetContinueJob(e.Job);
+                    Invoke(new Action(() => 
+                    {
+                        m_wView.NetContinueJob(e.Job); 
+                    }));
                 });
             }
         }

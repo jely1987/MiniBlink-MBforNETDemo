@@ -6,4 +6,6 @@
 
 3、js是弱类型语言，而c#是强类型，加上各种类类型变量，方法变量等，有点乱
 
-4、QQ:17136608
+4、https://gitee.com/ampereufo/MBforNETDemo/
+
+5、QQ:17136608

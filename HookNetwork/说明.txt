@@ -2,4 +2,6 @@
 
 1、本DEMO演示广受欢迎的如何拦截及修改网络请求及响应数据，插入新请求等
 
-2、QQ:17136608
+2、https://gitee.com/ampereufo/MBforNETDemo/
+
+3、QQ:17136608

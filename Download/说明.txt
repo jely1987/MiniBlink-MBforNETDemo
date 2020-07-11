@@ -4,4 +4,6 @@
 
 2、避免各种工程依赖的麻烦，每个项目都是独立的，其中MB_开头的3个文件为MB组件，CPU选择X86，直接编译即可，请在exe生成目录下放上node.dll文件。
 
-3、QQ:17136608
+3、https://gitee.com/ampereufo/MBforNETDemo/
+
+4、QQ:17136608
