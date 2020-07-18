@@ -97,6 +97,7 @@ namespace WebUserface
             m_wView.BindFunction("min", new wkeJsNativeFunction(MinFunc));
             m_wView.BindFunction("shut", new wkeJsNativeFunction(CloseFunc));
             m_wView.BindFunction("drag", new wkeJsNativeFunction(onDrag));
+            m_wView.BindFunction("transparent", new wkeJsNativeFunction(SetTransparent));
 
             // 增加了拖拽支持，也是参考了凹大神的代码 https://gitee.com/aochulai/NetMiniblink
             DragDrop += DragFileDrop;
@@ -139,6 +140,7 @@ namespace WebUserface
                 if (WindowState == FormWindowState.Maximized)
                 {
                     WindowState = FormWindowState.Normal;
+                    m_wView.RunJS("document.getElementById('max-btn').innerHTML = '□'");
                     Location = new Point(Location.X, MousePosition.Y - 17);
                 }
 
@@ -167,6 +169,7 @@ namespace WebUserface
                                 if (iY <= 0)
                                 {
                                     WindowState = FormWindowState.Maximized;
+                                    m_wView.RunJS("document.getElementById('max-btn').innerHTML = '♢'");
                                 }
                             }));
 
@@ -186,6 +189,15 @@ namespace WebUserface
                 });
             }
 
+            return 0;
+        }
+
+        private long SetTransparent(IntPtr es, IntPtr param)
+        {
+            int iStyle = MB_Common.GetWindowLong(Handle, (int)WinConst.GWL_EXSTYLE);
+            MB_Common.SetWindowLong(Handle, (int)WinConst.GWL_EXSTYLE, iStyle | (int)WinConst.WS_EX_LAYERED);
+
+            m_wView.Transparent = m_wView.Transparent ? false : true;
             return 0;
         }
 

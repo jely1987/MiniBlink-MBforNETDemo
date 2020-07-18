@@ -21,6 +21,7 @@ namespace MB
         private wkePaintUpdatedCallback m_wkePaintUpdatedCallback;
         private WndProcCallback m_WndProcCallback;
         private bool m_bMouseEnabled;
+        private bool m_bTransparent;
 
         #region 设置回调事件
 
@@ -2637,6 +2638,19 @@ namespace MB
         public int ContentHeight
         {
             get { return MBApi.wkeGetContentHeight(Handle); }
+        }
+
+        /// <summary>
+        /// 是否透明
+        /// </summary>
+        public bool Transparent
+        {
+            get { return m_bTransparent; }
+            set 
+            {
+                m_bTransparent = value;
+                MBApi.wkeSetTransparent(Handle, value); 
+            }
         }
 
         /// <summary>
