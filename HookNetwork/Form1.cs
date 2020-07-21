@@ -13,7 +13,7 @@ namespace HookNetwork
     public partial class Form1 : Form
     {
         WebView m_wView = null;
-
+        IntPtr m_AsynJob = IntPtr.Zero;
         public Form1()
         {
             InitializeComponent();
@@ -132,12 +132,13 @@ namespace HookNetwork
             {
                 Task.Factory.StartNew(() =>
                 {
+                    m_AsynJob = e.Job;    // 等异步操作结束后，job可能已经变成其他任务的了，所以要保存下来
                     File.ReadAllText("某个文件");    // 或等待其他响应等耗时操作
                 }).ContinueWith(arg =>
                 {
                     Invoke(new Action(() => 
                     {
-                        m_wView.NetContinueJob(e.Job); 
+                        m_wView.NetContinueJob(m_AsynJob);
                     }));
                 });
             }
