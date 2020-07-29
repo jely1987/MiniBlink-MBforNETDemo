@@ -1255,12 +1255,23 @@ namespace MB
         /// 获取mimeType。此方法应该在 OnNetResponse 事件中使用
         /// </summary>
         /// <param name="job"></param>
-        /// <param name="mime"></param>
         /// <returns></returns>
-        public string NetGetMIMEType(IntPtr job, string mime)
+        public string NetGetMIMEType(IntPtr job)
         {
-            IntPtr ptr = MBApi.wkeNetGetMIMEType(job, mime.StrToUtf8Ptr());
-            return ptr.UTF8PtrToStr();
+            //IntPtr ptr = MBApi.wkeNetGetMIMEType(job, IntPtr.Zero);
+            //return ptr.UTF8PtrToStr();
+
+            IntPtr mime = MBApi.wkeCreateStringW(null, 0);
+            if (mime == IntPtr.Zero)
+            {
+                return string.Empty;
+            }
+
+            MBApi.wkeNetGetMIMEType(job, mime);
+            string mimeType = MBApi.wkeGetStringW(mime).UTF8PtrToStr();
+            MBApi.wkeDeleteString(mime);
+
+            return mimeType;
         }
 
         /// <summary>

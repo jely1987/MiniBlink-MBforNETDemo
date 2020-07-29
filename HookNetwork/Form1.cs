@@ -23,7 +23,7 @@ namespace HookNetwork
         {
             m_wView = new WebView();
             m_wView.Bind(this);
-            m_wView.LoadURL("https://www.baidu.com/");
+            m_wView.LoadURL("https://www.baidu.com/");    // 不同网站的网络请求情况不同，请结合具体情况调试接口
 
             m_wView.OnLoadUrlBegin += OnLoadUrlBegin;
             m_wView.OnLoadUrlEnd += OnLoadUrlEnd;
@@ -157,7 +157,7 @@ namespace HookNetwork
         {
             string strUrl = e.URL;
             string strResponseHead = m_wView.NetGetHTTPHeaderFieldFromResponse(e.Job, "content-type");    // 或status等
-            string strMimeType = m_wView.NetGetMIMEType(e.Job, "text/html");
+            string strMimeType = m_wView.NetGetMIMEType(e.Job);
 
             wkeSlist rawResponseHead = m_wView.NetGetRawResponseHead(e.Job);
             List<string> headList = new List<string>();
@@ -169,6 +169,12 @@ namespace HookNetwork
                     break;
                 }
                 headList.Add(strHead);
+
+                if (rawResponseHead.next == IntPtr.Zero)
+                {
+                    break;
+                }
+
                 rawResponseHead = (wkeSlist)rawResponseHead.next.UTF8PtrToStruct(typeof(wkeSlist));
             }
         }
