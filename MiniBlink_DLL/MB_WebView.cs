@@ -739,6 +739,12 @@ namespace MB
         /// <param name="isTransparent">true 表示为分层窗口，窗口必须是顶层</param>
         public WebView(IWin32Window window, bool isTransparent = false)
         {
+            if (!File.Exists($"{Environment.CurrentDirectory}\\node.dll"))
+            {
+                MessageBox.Show("请在程序同目录下放置node.dll文件", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Process.GetCurrentProcess().Kill();
+            }
+
             if (MBApi.wkeIsInitialize() == 0)
             {
                 MBApi.wkeInitialize();
@@ -858,7 +864,7 @@ namespace MB
                             int width = rcInvalid.Right - rcInvalid.Left;
                             int height = rcInvalid.Bottom - rcInvalid.Top;
 
-                            if (0 != width && 0 != height)
+                            if (width != 0 && height != 0)
                             {
                                 MB_Common.BitBlt(hdc, destX, destY, width, height, MBApi.wkeGetViewDC(Handle), srcX, srcY, (int)WinConst.SRCCOPY);
                             }
