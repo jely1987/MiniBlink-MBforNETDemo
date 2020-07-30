@@ -1,16 +1,16 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Dynamic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;
-using System.Drawing;
-using System.IO;
-using System.Collections;
-using System.Reflection;
-using System.Dynamic;
-using System.Net;
-using System.Drawing.Imaging;
 
 namespace MB
 {
@@ -716,6 +716,12 @@ namespace MB
         /// </summary>
         public WebView()
         {
+            if (!File.Exists($"{Environment.CurrentDirectory}\\node.dll"))
+            {
+                MessageBox.Show("请在程序同目录下放置node.dll文件", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Process.GetCurrentProcess().Kill();
+            }
+
             if (MBApi.wkeIsInitialize() == 0)
             {
                 MBApi.wkeInitialize();

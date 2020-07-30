@@ -62,9 +62,9 @@ namespace ReptilesData
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            m_wView = new WebView();
             m_currentWHD = tabPage_webView.Handle;
 
+            m_wView = new WebView();
             m_wView.Bind(tabPage_webView);
             m_wView.NavigationToNewWindowEnable = true;
 
