@@ -47,10 +47,12 @@ namespace HookNetwork
                     break;
                 }
                 headList.Add(strHead);
+
                 if (rawHead.next == IntPtr.Zero)
                 {
                     break;
                 }
+
                 rawHead = (wkeSlist)rawHead.next.UTF8PtrToStruct(typeof(wkeSlist));
             }
 

@@ -4,10 +4,10 @@ using System.Runtime.InteropServices;
 
 namespace MB
 {
-    internal delegate IntPtr WndProcCallback(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+    public delegate IntPtr WndProcCallback(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct RECT
+    public struct RECT
     {
         public int Left;
         public int Top;
@@ -24,7 +24,7 @@ namespace MB
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct SIZE
+    public struct SIZE
     {
         public int cx;
         public int cy;
@@ -36,7 +36,7 @@ namespace MB
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct PAINTSTRUCT
+    public struct PAINTSTRUCT
     {
         public int hdc;
         public int fErase;
@@ -49,14 +49,14 @@ namespace MB
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct POINT
+    public struct POINT
     {
         public int x;
         public int y;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct COMPOSITIONFORM
+    public struct COMPOSITIONFORM
     {
         public int dwStyle;
         public POINT ptCurrentPos;
@@ -64,7 +64,7 @@ namespace MB
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct BITMAP
+    public struct BITMAP
     {
         public int bmType;
         public int bmWidth;
@@ -76,7 +76,7 @@ namespace MB
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 4)]
-    internal struct BLENDFUNCTION
+    public struct BLENDFUNCTION
     {
         [FieldOffset(0)]
         public byte BlendOp;
@@ -91,7 +91,7 @@ namespace MB
         public byte AlphaFormat;
     }
 
-    internal enum WinConst : int
+    public enum WinConst : int
     {
         GWL_EXSTYLE = -20,
         GWL_WNDPROC = -4,
@@ -143,7 +143,7 @@ namespace MB
     }
 
 
-    internal static class MB_Common
+    public static class MB_Common
     {
         [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
         public static extern int GetWindowLong(IntPtr hwnd, int nIndex);
@@ -242,7 +242,7 @@ namespace MB
         public static extern int InvalidateRect(IntPtr hwnd, ref RECT lpRect, bool bErase);
 
         [DllImport("kernel32.dll", EntryPoint = "lstrlenA")]
-        private static extern int lstrlen(IntPtr lpString);
+        public static extern int lstrlen(IntPtr lpString);
 
         [DllImport("kernel32.dll", EntryPoint = "lstrlenA")]
         public static extern int lstrlenA(IntPtr lpString);
@@ -253,18 +253,17 @@ namespace MB
         [DllImport("user32.dll ", EntryPoint = "SendMessage")]
         public static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
-
-        internal static int LOWORD(this IntPtr dword)
+        public static int LOWORD(this IntPtr dword)
         {
             return (int)dword & 65535;
         }
 
-        internal static int HIWORD(this IntPtr dword)
+        public static int HIWORD(this IntPtr dword)
         {
             return (int)dword >> 16;
         }
 
-        internal static string UTF8PtrToStr(this IntPtr utf8)
+        public static string UTF8PtrToStr(this IntPtr utf8)
         {
             if (utf8 == IntPtr.Zero)
             {
@@ -278,7 +277,7 @@ namespace MB
             return Encoding.UTF8.GetString(bytes);
         }
 
-        internal static IntPtr StrToUtf8Ptr(this string str)
+        public static IntPtr StrToUtf8Ptr(this string str)
         {
             IntPtr ptr = IntPtr.Zero;
 
@@ -293,7 +292,7 @@ namespace MB
             return ptr;
         }
 
-        internal static string UnicodePtrToStr(this IntPtr unicode)
+        public static string UnicodePtrToStr(this IntPtr unicode)
         {
             /*if (unicode == IntPtr.Zero)
             {
@@ -309,7 +308,7 @@ namespace MB
             return Marshal.PtrToStringUni(unicode);
         }
 
-        internal static IntPtr StrToUnicodePtr(this string str)
+        public static IntPtr StrToUnicodePtr(this string str)
         {
             IntPtr ptr = IntPtr.Zero;
 
@@ -324,7 +323,7 @@ namespace MB
             return ptr;
         }
 
-        internal static byte[] StructToBytes(this object structObj)
+        public static byte[] StructToBytes(this object structObj)
         {
             int iSize = Marshal.SizeOf(structObj);
             byte[] bytes = new byte[iSize];
@@ -336,7 +335,7 @@ namespace MB
             return bytes;
         }
 
-        internal static object BytesToStuct(this byte[] bytes, Type type)
+        public static object BytesToStuct(this byte[] bytes, Type type)
         {
             object objRet = null;
 
@@ -352,7 +351,7 @@ namespace MB
             return objRet;
         }
 
-        internal static IntPtr StructToUTF8Ptr(this object structObj)
+        public static IntPtr StructToUTF8Ptr(this object structObj)
         {
             int iSize = Marshal.SizeOf(structObj);
             byte[] bytes = new byte[iSize];
@@ -363,12 +362,12 @@ namespace MB
             return structPtr;
         }
 
-        internal static object UTF8PtrToStruct(this IntPtr structPtr, Type type)
+        public static object UTF8PtrToStruct(this IntPtr structPtr, Type type)
         {
             return Marshal.PtrToStructure(structPtr, type);
         }
 
-        internal static byte[] UTF8PtrToByte(this IntPtr utf8)
+        public static byte[] UTF8PtrToByte(this IntPtr utf8)
         {
             if (utf8 == IntPtr.Zero)
             {
@@ -382,7 +381,7 @@ namespace MB
             return bytes;
         }
 
-        internal static IntPtr ByteToUtf8Ptr(this byte[] data)
+        public static IntPtr ByteToUtf8Ptr(this byte[] data)
         {
             IntPtr ptr = IntPtr.Zero;
 
@@ -396,7 +395,7 @@ namespace MB
             return ptr;
         }
 
-        internal static string[] PtrToStringArray(this IntPtr ptr, int iLength)
+        public static string[] PtrToStringArray(this IntPtr ptr, int iLength)
         {
             string[] data = new string[iLength];
 
@@ -410,7 +409,7 @@ namespace MB
             return data;
         }
 
-        internal static long ToLong(this DateTime time)
+        public static long ToLong(this DateTime time)
         {
             DateTime now = time.ToUniversalTime();
             DateTime start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -418,7 +417,7 @@ namespace MB
             return (now.Ticks - start.Ticks) / 10000;
         }
 
-        internal static DateTime ToDT(this long time)
+        public static DateTime ToDT(this long time)
         {
             DateTime start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             time = start.Ticks + time * 10000;

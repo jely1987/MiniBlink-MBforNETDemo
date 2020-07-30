@@ -2,8 +2,12 @@
 
 1、本DEMO演示如何下载文件，这个比较简单
 
-2、避免各种工程依赖的麻烦，每个项目都是独立的，其中MB_开头的3个文件为MB组件，CPU选择X86，直接编译即可，请在exe生成目录下放上node.dll文件。
+2、首先编译MiniBlink_DLL，把生成的dll添加到本工程引用中，建议引用时直接引用生成dll的原始目录，调试时会自动跳转到dll源码，方便
 
-3、https://gitee.com/ampereufo/MBforNETDemo/
+3、编译本工程，在生成exe的同目录下放上node.dll
 
-4、QQ:17136608
+4、运行即可，如果没成功，换个姿势重试下
+
+5、https://gitee.com/ampereufo/MBforNETDemo/
+
+6、QQ:17136608

@@ -2,10 +2,14 @@
 
 1、本DEMO演示JS和C#互相调用
 
-2、避免各种工程依赖的麻烦，每个项目都是独立的，其中MB_开头的3个文件为MB组件，CPU选择X86，直接编译即可，请在exe生成目录下放上node.dll文件。
+2、js是弱类型语言，而c#是强类型，加上各种类类型变量，方法变量等，有点乱
 
-3、js是弱类型语言，而c#是强类型，加上各种类类型变量，方法变量等，有点乱
+3、首先编译MiniBlink_DLL，把生成的dll添加到本工程引用中，建议引用时直接引用生成dll的原始目录，调试时会自动跳转到dll源码，方便
 
-4、https://gitee.com/ampereufo/MBforNETDemo/
+4、编译本工程，在生成exe的同目录下放上node.dll
 
-5、QQ:17136608
+5、运行即可，如果没成功，换个姿势重试下
+
+6、https://gitee.com/ampereufo/MBforNETDemo/
+
+7、QQ:17136608
