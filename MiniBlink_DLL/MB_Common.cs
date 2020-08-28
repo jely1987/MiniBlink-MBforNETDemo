@@ -281,7 +281,7 @@ namespace MB
         {
             IntPtr ptr = IntPtr.Zero;
 
-            if (!string.IsNullOrEmpty(str))
+            if (str != null)
             {
                 byte[] bytes = Encoding.UTF8.GetBytes(str);
                 ptr = Marshal.AllocHGlobal(bytes.Length + 1);
@@ -312,7 +312,7 @@ namespace MB
         {
             IntPtr ptr = IntPtr.Zero;
 
-            if (!string.IsNullOrEmpty(str))
+            if (str != null)
             {
                 byte[] bytes = Encoding.Unicode.GetBytes(str);
                 ptr = Marshal.AllocHGlobal(bytes.Length + 1);
