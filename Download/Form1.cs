@@ -33,6 +33,7 @@ namespace Download
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.Filter = "All files(*.*)|*.*";
             sfd.RestoreDirectory = true;
+            sfd.FileName = e.URL.Substring(e.URL.LastIndexOf('/') + 1);
 
             if (sfd.ShowDialog() == DialogResult.OK)
             {
