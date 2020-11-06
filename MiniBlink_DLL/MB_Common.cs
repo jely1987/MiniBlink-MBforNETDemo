@@ -170,6 +170,9 @@ namespace MB
         [DllImport("user32.dll", EntryPoint = "CallWindowProcW")]
         public static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam);
 
+        [DllImport("user32.dll", EntryPoint = "DefWindowProcA")]
+        public static extern IntPtr DefWindowProc(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam);
+
         [DllImport("user32.dll", EntryPoint = "GetClientRect")]
         public static extern int GetClientRect(IntPtr hwnd, ref RECT lpRect);
 
@@ -208,9 +211,6 @@ namespace MB
 
         [DllImport("imm32.dll", EntryPoint = "ImmReleaseContext")]
         public static extern int ImmReleaseContext(IntPtr hwnd, IntPtr himc);
-
-        [DllImport("user32.dll", EntryPoint = "DefWindowProcA")]
-        public static extern IntPtr DefWindowProc(IntPtr hwnd, uint wMsg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll", EntryPoint = "GetWindowRect")]
         public static extern int GetWindowRect(IntPtr hwnd, ref RECT lpRect);
@@ -263,14 +263,29 @@ namespace MB
         [DllImport("user32.dll ", EntryPoint = "SendMessage")]
         public static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
-        public static int LOWORD(this IntPtr dword)
+        public static ulong LOWORD(this IntPtr dword)
         {
-            return (int)dword & 65535;
+            return IntPtr.Size == 4 ? (ulong)dword & 65535 : (ulong)dword & 4294967295;
         }
 
-        public static int HIWORD(this IntPtr dword)
+        public static ulong HIWORD(this IntPtr dword)
         {
-            return (int)dword >> 16;
+            return IntPtr.Size == 4 ? (ulong)dword >> 16 : (ulong)dword >> 32;
+        }
+
+        public static int LOWORD(this int dword)
+        {
+            return dword & 65535;
+        }
+
+        public static int HIWORD(this int dword)
+        {
+            return dword >> 16;
+        }
+
+        public static int To32(this IntPtr dword)
+        {
+            return IntPtr.Size == 8 ? (int)(dword.ToInt64() << 32 >> 32) : dword.ToInt32();
         }
 
         public static string UTF8PtrToStr(this IntPtr utf8)

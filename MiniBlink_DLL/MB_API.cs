@@ -524,7 +524,7 @@ namespace MB
 
     public class MBApi
     {
-        private const string m_strDll = "node.dll";    // 编译64位的话，换成"miniblink_x64.dll"，把"miniblink_x64.dll"文件改名成"node.dll"也行
+        private const string m_strDll = "node.dll";    // 编译64位的话，换成"miniblink_x64.dll"，或者把"miniblink_x64.dll"文件改名成"node.dll"也行
 
         [DllImport(m_strDll, EntryPoint = "wkeIsInitialize", CallingConvention = CallingConvention.Cdecl)]
         public static extern byte wkeIsInitialize();

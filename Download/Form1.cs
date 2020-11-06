@@ -40,6 +40,10 @@ namespace Download
                 e.SaveFilePath = sfd.FileName;
                 timer1.Start();
             }
+            else
+            {
+                return;
+            }
             
             FileStream file = File.Create(e.SaveFilePath);
 

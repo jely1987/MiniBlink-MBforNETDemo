@@ -716,11 +716,11 @@ namespace MB
         /// </summary>
         public WebView()
         {
-            if (!File.Exists($"{Environment.CurrentDirectory}\\node.dll"))
+            /*if (!File.Exists($"{Environment.CurrentDirectory}\\node.dll"))
             {
                 MessageBox.Show("请在程序同目录下放置node.dll文件", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Process.GetCurrentProcess().Kill();
-            }
+            }*/
 
             if (MBApi.wkeIsInitialize() == 0)
             {
@@ -739,11 +739,11 @@ namespace MB
         /// <param name="isTransparent">true 表示为分层窗口，窗口必须是顶层</param>
         public WebView(IWin32Window window, bool isTransparent = false)
         {
-            if (!File.Exists($"{Environment.CurrentDirectory}\\node.dll"))
+            /*if (!File.Exists($"{Environment.CurrentDirectory}\\node.dll"))
             {
                 MessageBox.Show("请在程序同目录下放置node.dll文件", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Process.GetCurrentProcess().Kill();
-            }
+            }*/
 
             if (MBApi.wkeIsInitialize() == 0)
             {
@@ -764,7 +764,7 @@ namespace MB
             {
                 if (m_OldProc != IntPtr.Zero)
                 {
-                    MB_Common.SetWindowLong(m_hWnd, (int)WinConst.GWL_WNDPROC, m_OldProc.ToInt32());
+                    MB_Common.SetWindowLong(m_hWnd, (int)WinConst.GWL_WNDPROC, m_OldProc.To32());
                     m_OldProc = IntPtr.Zero;
                 }
 
@@ -775,7 +775,6 @@ namespace MB
             }
         }
 
-        // copy自ky大神 https://gitee.com/kyozy/miniblinknet
         protected void wkeOnPaintUpdated(IntPtr webView, IntPtr param, IntPtr hdc, int x, int y, int cx, int cy)
         {
             IntPtr hWnd = param;
@@ -842,7 +841,7 @@ namespace MB
             {
                 case (uint)WinConst.WM_PAINT:    // 当窗口显示区域的一部分显示内容或者全部变为“无效”，以致于必须“更新画面”时
                     {
-                        if ((int)WinConst.WS_EX_LAYERED != ((int)WinConst.WS_EX_LAYERED & (int)MB_Common.GetWindowLong(hWnd, (int)WinConst.GWL_EXSTYLE)))
+                        if ((int)WinConst.WS_EX_LAYERED != ((int)WinConst.WS_EX_LAYERED & MB_Common.GetWindowLong(hWnd, (int)WinConst.GWL_EXSTYLE)))
                         {
                             PAINTSTRUCT ps = new PAINTSTRUCT();
                             IntPtr hdc = MB_Common.BeginPaint(hWnd, ref ps);
@@ -883,28 +882,24 @@ namespace MB
 
                 case (uint)WinConst.WM_SIZE:    // 窗口尺寸改变时
                     {
-                        int width = lParam.ToInt32() & 65535;
-                        int height = lParam.ToInt32() >> 16;
-                        MBApi.wkeResize(Handle, width, height);
-
+                        MBApi.wkeResize(Handle, lParam.To32().LOWORD(), lParam.To32().HIWORD());
                         break;
                     }
 
                 case (uint)WinConst.WM_KEYDOWN:    // 非系统键被按下时
                     {
-                        int virtualKeyCode = wParam.ToInt32();
                         uint flags = 0;
-                        if (((lParam.ToInt32() >> 16) & (int)WinConst.KF_REPEAT) != 0)
+                        if ((lParam.To32().HIWORD() & (int)WinConst.KF_REPEAT) != 0)
                         {
                             flags |= (uint)wkeKeyFlags.WKE_REPEAT;
                         }
 
-                        if (((lParam.ToInt32() >> 16) & (int)WinConst.KF_EXTENDED) != 0)
+                        if ((lParam.To32().HIWORD() & (int)WinConst.KF_EXTENDED) != 0)
                         {
                             flags |= (uint)wkeKeyFlags.WKE_EXTENDED;
                         }
 
-                        if (MBApi.wkeFireKeyDownEvent(Handle, virtualKeyCode, flags, false) != 0)
+                        if (MBApi.wkeFireKeyDownEvent(Handle, wParam.To32(), flags, false) != 0)
                         {
                             return IntPtr.Zero;
                         }
@@ -914,19 +909,18 @@ namespace MB
 
                 case (uint)WinConst.WM_KEYUP:    // 非系统键被抬起时
                     {
-                        int virtualKeyCode = wParam.ToInt32();
                         uint flags = 0;
-                        if (((lParam.ToInt32() >> 16) & (int)WinConst.KF_REPEAT) != 0)
+                        if ((lParam.To32().HIWORD() & (int)WinConst.KF_REPEAT) != 0)
                         {
                             flags |= (uint)wkeKeyFlags.WKE_REPEAT;
                         }
 
-                        if (((lParam.ToInt32() >> 16) & (int)WinConst.KF_EXTENDED) != 0)
+                        if ((lParam.To32().HIWORD() & (int)WinConst.KF_EXTENDED) != 0)
                         {
                             flags |= (uint)wkeKeyFlags.WKE_EXTENDED;
                         }
 
-                        if (MBApi.wkeFireKeyUpEvent(Handle, virtualKeyCode, flags, false) != 0)
+                        if (MBApi.wkeFireKeyUpEvent(Handle, wParam.To32(), flags, false) != 0)
                         {
                             return IntPtr.Zero;
                         }
@@ -936,19 +930,18 @@ namespace MB
 
                 case (uint)WinConst.WM_CHAR:    // ASCII码为0-127之间的按键被按下时
                     {
-                        int charCode = wParam.ToInt32();
                         uint flags = 0;
-                        if (((lParam.ToInt32() >> 16) & (int)WinConst.KF_REPEAT) != 0)
+                        if ((lParam.To32().HIWORD() & (int)WinConst.KF_REPEAT) != 0)
                         {
                             flags |= (uint)wkeKeyFlags.WKE_REPEAT;
                         }
 
-                        if (((lParam.ToInt32() >> 16) & (int)WinConst.KF_EXTENDED) != 0)
+                        if ((lParam.To32().HIWORD() & (int)WinConst.KF_EXTENDED) != 0)
                         {
                             flags |= (uint)wkeKeyFlags.WKE_EXTENDED;
                         }
 
-                        if (MBApi.wkeFireKeyPressEvent(Handle, charCode, flags, false) != 0)
+                        if (MBApi.wkeFireKeyPressEvent(Handle, wParam.To32(), flags, false) != 0)
                         {
                             return IntPtr.Zero;
                         }
@@ -980,37 +973,33 @@ namespace MB
                             MB_Common.ReleaseCapture();
                         }
 
-                        int x = lParam.LOWORD();
-                        int y = lParam.HIWORD();
-
                         uint flags = 0;
-
-                        if ((wParam.ToInt32() & (int)WinConst.MK_CONTROL) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_CONTROL) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_CONTROL;
                         }
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_SHIFT) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_SHIFT) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_SHIFT;
                         }
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_LBUTTON) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_LBUTTON) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_LBUTTON;
                         }
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_MBUTTON) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_MBUTTON) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_MBUTTON;
                         }
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_RBUTTON) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_RBUTTON) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_RBUTTON;
                         }
 
-                        if (MBApi.wkeFireMouseEvent(Handle, msg, x, y, flags) != 0)
+                        if (MBApi.wkeFireMouseEvent(Handle, msg, lParam.To32().LOWORD(), lParam.To32().HIWORD(), flags) != 0)
                         {
                             return IntPtr.Zero;
                         }
@@ -1021,8 +1010,8 @@ namespace MB
                 case (uint)WinConst.WM_CONTEXTMENU:
                     {
                         POINT pt;
-                        pt.x = lParam.LOWORD();
-                        pt.y = lParam.HIWORD();
+                        pt.x = lParam.To32().LOWORD();
+                        pt.y = lParam.To32().HIWORD();
 
                         if (pt.x != -1 && pt.y != -1)
                         {
@@ -1031,27 +1020,27 @@ namespace MB
 
                         uint flags = 0;
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_CONTROL) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_CONTROL) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_CONTROL;
                         }
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_SHIFT) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_SHIFT) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_SHIFT;
                         }
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_LBUTTON) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_LBUTTON) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_LBUTTON;
                         }
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_MBUTTON) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_MBUTTON) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_MBUTTON;
                         }
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_RBUTTON) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_RBUTTON) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_RBUTTON;
                         }
@@ -1067,39 +1056,38 @@ namespace MB
                 case (uint)WinConst.WM_MOUSEWHEEL:
                     {
                         POINT pt;
-                        pt.x = lParam.LOWORD();
-                        pt.y = lParam.HIWORD();
+                        pt.x = lParam.To32().LOWORD();
+                        pt.y = lParam.To32().HIWORD();
                         MB_Common.ScreenToClient(hWnd, ref pt);
 
-                        int delta = wParam.HIWORD();
                         uint flags = 0;
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_CONTROL) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_CONTROL) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_CONTROL;
                         }
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_SHIFT) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_SHIFT) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_SHIFT;
                         }
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_LBUTTON) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_LBUTTON) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_LBUTTON;
                         }
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_MBUTTON) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_MBUTTON) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_MBUTTON;
                         }
 
-                        if ((wParam.ToInt32() & (int)WinConst.MK_RBUTTON) != 0)
+                        if ((wParam.To32() & (int)WinConst.MK_RBUTTON) != 0)
                         {
                             flags |= (uint)wkeMouseFlags.WKE_RBUTTON;
                         }
 
-                        if (MBApi.wkeFireMouseWheelEvent(Handle, pt.x, pt.y, delta, flags) != 0)
+                        if (MBApi.wkeFireMouseWheelEvent(Handle, pt.x, pt.y, wParam.To32().HIWORD(), flags) != 0)
                         {
                             return IntPtr.Zero;
                         }
@@ -1150,9 +1138,8 @@ namespace MB
                     }
             }
 
-            return MB_Common.CallWindowProc(m_OldProc, hWnd, msg, wParam, lParam);
+            return MB_Common.CallWindowProc(m_OldProc, hWnd, msg, wParam,  lParam);
         }
-
 
         #region 基本方法
 
