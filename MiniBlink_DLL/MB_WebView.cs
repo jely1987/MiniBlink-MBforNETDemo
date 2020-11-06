@@ -1690,10 +1690,11 @@ namespace MB
                 MBApi.wkeSetTransparent(Handle, false);
             }
 
-            m_OldProc = MB_Common.GetWindowLongIntPtr(m_hWnd, (int)WinConst.GWL_WNDPROC);
-            if (m_OldProc != Marshal.GetFunctionPointerForDelegate(m_WndProcCallback))
+            m_OldProc = (IntPtr)MB_Common.GetWindowLong(m_hWnd, (int)WinConst.GWL_WNDPROC);
+            IntPtr ptrProcCallback = Marshal.GetFunctionPointerForDelegate(m_WndProcCallback);
+            if (m_OldProc != ptrProcCallback)
             {
-                m_OldProc = MB_Common.SetWindowLongDelegate(m_hWnd, (int)WinConst.GWL_WNDPROC, m_WndProcCallback);
+                m_OldProc = (IntPtr)MB_Common.SetWindowLong(m_hWnd, (int)WinConst.GWL_WNDPROC, (int)ptrProcCallback);
             }
 
             RECT rc = new RECT();

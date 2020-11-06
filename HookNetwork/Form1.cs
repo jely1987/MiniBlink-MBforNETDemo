@@ -23,7 +23,7 @@ namespace HookNetwork
         {
             m_wView = new WebView();
             m_wView.Bind(this);
-            m_wView.LoadURL("https://www.baidu.com/");    // 不同网站的网络请求情况不同，请结合具体情况调试接口
+            m_wView.LoadURL("https://www.mabangerp.com/");    // 不同网站的网络请求情况不同，请结合具体情况调试接口
 
             m_wView.OnLoadUrlBegin += OnLoadUrlBegin;
             m_wView.OnLoadUrlEnd += OnLoadUrlEnd;

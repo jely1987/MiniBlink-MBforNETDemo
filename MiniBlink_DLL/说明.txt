@@ -4,4 +4,7 @@
 
 1、https://gitee.com/ampereufo/MBforNETDemo/
 
-2、QQ:17136608
+2、调用32或64位版本的MB，本dll的项目属性-生成-目标平台，选择“AnyCPU”（不需要改），
+   MB_API.cs文件中m_strDll变量设为对应版本的mb，具体项目选择x86或x64即可，要在项目属性中设置，不要设置工具栏里的哪个，我也不知道为啥！
+
+3、QQ:17136608

@@ -146,16 +146,26 @@ namespace MB
     public static class MB_Common
     {
         [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
-        public static extern int GetWindowLong(IntPtr hwnd, int nIndex);
+        public static extern int GetWindowLong32(IntPtr hwnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
+        public static extern int GetWindowLong64(IntPtr hwnd, int nIndex);
+
+        public static int GetWindowLong(IntPtr hwnd, int nIndex)
+        {
+            return IntPtr.Size == 8 ? GetWindowLong64(hwnd, nIndex) : GetWindowLong32(hwnd, nIndex);
+        }
 
         [DllImport("user32.dll", EntryPoint = "SetWindowLongW")]
-        public static extern int SetWindowLong(IntPtr hwnd, int nIndex, int dwNewLong);
+        public static extern int SetWindowLong32(IntPtr hwnd, int nIndex, int dwNewLong);
 
-        [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
-        public static extern IntPtr GetWindowLongIntPtr(IntPtr hwnd, int nIndex);
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+        public static extern int SetWindowLong64(IntPtr hwnd, int nIndex, int dwNewLong);
 
-        [DllImport("user32.dll", EntryPoint = "SetWindowLongW")]
-        public static extern IntPtr SetWindowLongDelegate(IntPtr hwnd, int nIndex, Delegate dwNewLong);
+        public static int SetWindowLong(IntPtr hwnd, int nIndex, int dwNewLong)
+        {
+            return IntPtr.Size == 8 ? SetWindowLong64(hwnd, nIndex, dwNewLong) : SetWindowLong32(hwnd, nIndex, dwNewLong);
+        }
 
         [DllImport("user32.dll", EntryPoint = "CallWindowProcW")]
         public static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam);
